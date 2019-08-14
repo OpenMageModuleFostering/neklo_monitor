@@ -19,7 +19,7 @@ class Neklo_Monitor_ProductController extends Neklo_Monitor_Controller_Abstract
             $outOfStockProductList[] = array(
                 'id'    => $row->getEntityId(),
                 'name'  => $row->getName(),
-                'price' => Mage::helper('core')->currency($row->getPrice(), true, false),
+                'price' => Mage::app()->getStore($storeId)->convertPrice($row->getPrice(), true, false),
                 'sku'   => $row->getSku(),
                 'image2xUrl' => $hlp->resize(224, 300)->__toString(),
                 'image3xUrl' => $hlp->resize(336, 450)->__toString(),

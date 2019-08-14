@@ -54,10 +54,11 @@ class Neklo_Monitor_Report_SalesController extends Neklo_Monitor_Controller_Abst
     /**
      * @param Mage_Sales_Model_Mysql4_Report_Collection_Abstract $resourceCollection
      * @param Mage_Sales_Model_Mysql4_Report_Collection_Abstract $totalsCollection
+     * @param array $callbacks
      * @param array $aggregatedColumns
      * @return array
      */
-    protected function _fetchReport($resourceCollection, $totalsCollection, $aggregatedColumns = array())
+    protected function _fetchReport($resourceCollection, $totalsCollection, $callbacks = array(), $aggregatedColumns = array())
     {
         /** @var Mage_Reports_Model_Grouped_Collection $mainCollection */
         $mainCollection = Mage::getModel('reports/grouped_collection');
@@ -72,19 +73,45 @@ class Neklo_Monitor_Report_SalesController extends Neklo_Monitor_Controller_Abst
         );
         foreach ($mainCollection->getItems() as $_period => $_item) {
             /** @var Mage_Adminhtml_Model_Report_Item $_item */
-            $list['report'][] = $_item->getData();
+            $_data = $_item->getData();
+            if ($callbacks) {
+                foreach ($_data as $_key => $_value) {
+                    if (array_key_exists($_key, $callbacks) && is_callable($callbacks[$_key])) {
+                        $_data[$_key] = call_user_func($callbacks[$_key], $_value);
+                    }
+                }
+            }
+            $list['report'][] = $_data;
         }
 
         if ($aggregatedColumns) {
             $totalsCollection->setAggregatedColumns($aggregatedColumns);
             $totalsCollection->load();
             foreach ($totalsCollection as $_item) {
-                $list['totals'] = $_item->getData();
+                $_data = $_item->getData();
+                if ($callbacks) {
+                    foreach ($_data as $_key => $_value) {
+                        if (array_key_exists($_key, $callbacks) && is_callable($callbacks[$_key])) {
+                            $_data[$_key] = call_user_func($callbacks[$_key], $_value);
+                        }
+                    }
+                }
+                $list['totals'] = $_data;
                 break;
             }
         }
 
         return $list;
+    }
+
+    protected function _processValueNumeric($value)
+    {
+        return (int) $value;
+    }
+
+    protected function _processValueCurrency($value)
+    {
+        return Mage::helper('core')->currency($value, true, false);
     }
 
     public function orderAction()
@@ -93,22 +120,39 @@ class Neklo_Monitor_Report_SalesController extends Neklo_Monitor_Controller_Abst
 //        $resourceCollectionName = 'sales/report_order_collection';
         list($resourceCollection, $totalsCollection) = $this->_prepareResourceCollection($resourceCollectionName);
         $list = $this->_fetchReport($resourceCollection, $totalsCollection, array(
-            'orders_count' => 'SUM(orders_count)',
-            'total_qty_ordered' => 'SUM(total_qty_ordered)',
-            'total_qty_invoiced' => 'SUM(total_qty_invoiced)',
-            'total_income_amount' => 'SUM(total_income_amount)',
-            'total_revenue_amount' => 'SUM(total_revenue_amount)',
-            'total_profit_amount' => 'SUM(total_profit_amount)',
-            'total_invoiced_amount' => 'SUM(total_invoiced_amount)',
-            'total_canceled_amount' => 'SUM(total_canceled_amount)',
-            'total_paid_amount' => 'SUM(total_paid_amount)',
-            'total_refunded_amount' => 'SUM(total_refunded_amount)',
-            'total_tax_amount' => 'SUM(total_tax_amount)',
-            'total_tax_amount_actual' => 'SUM(total_tax_amount_actual)',
-            'total_shipping_amount' => 'SUM(total_shipping_amount)',
-            'total_shipping_amount_actual' => 'SUM(total_shipping_amount_actual)',
-            'total_discount_amount' => 'SUM(total_discount_amount)',
-            'total_discount_amount_actual' => 'SUM(total_discount_amount_actual)',
+            'orders_count'                  => array($this, '_processValueNumeric'),
+            'total_qty_ordered'             => array($this, '_processValueNumeric'),
+            'total_qty_invoiced'            => array($this, '_processValueNumeric'),
+            'total_income_amount'           => array($this, '_processValueCurrency'),
+            'total_revenue_amount'          => array($this, '_processValueCurrency'),
+            'total_profit_amount'           => array($this, '_processValueCurrency'),
+            'total_invoiced_amount'         => array($this, '_processValueCurrency'),
+            'total_canceled_amount'         => array($this, '_processValueCurrency'),
+            'total_paid_amount'             => array($this, '_processValueCurrency'),
+            'total_refunded_amount'         => array($this, '_processValueCurrency'),
+            'total_tax_amount'              => array($this, '_processValueCurrency'),
+            'total_tax_amount_actual'       => array($this, '_processValueCurrency'),
+            'total_shipping_amount'         => array($this, '_processValueCurrency'),
+            'total_shipping_amount_actual'  => array($this, '_processValueCurrency'),
+            'total_discount_amount'         => array($this, '_processValueCurrency'),
+            'total_discount_amount_actual'  => array($this, '_processValueCurrency'),
+        ), array(
+            'orders_count'                  => 'SUM(orders_count)',
+            'total_qty_ordered'             => 'SUM(total_qty_ordered)',
+            'total_qty_invoiced'            => 'SUM(total_qty_invoiced)',
+            'total_income_amount'           => 'SUM(total_income_amount)',
+            'total_revenue_amount'          => 'SUM(total_revenue_amount)',
+            'total_profit_amount'           => 'SUM(total_profit_amount)',
+            'total_invoiced_amount'         => 'SUM(total_invoiced_amount)',
+            'total_canceled_amount'         => 'SUM(total_canceled_amount)',
+            'total_paid_amount'             => 'SUM(total_paid_amount)',
+            'total_refunded_amount'         => 'SUM(total_refunded_amount)',
+            'total_tax_amount'              => 'SUM(total_tax_amount)',
+            'total_tax_amount_actual'       => 'SUM(total_tax_amount_actual)',
+            'total_shipping_amount'         => 'SUM(total_shipping_amount)',
+            'total_shipping_amount_actual'  => 'SUM(total_shipping_amount_actual)',
+            'total_discount_amount'         => 'SUM(total_discount_amount)',
+            'total_discount_amount_actual'  => 'SUM(total_discount_amount_actual)',
         ));
         $this->_jsonResult($list);
     }
@@ -119,8 +163,11 @@ class Neklo_Monitor_Report_SalesController extends Neklo_Monitor_Controller_Abst
 //        $resourceCollectionName = 'tax/report_collection';
         list($resourceCollection, $totalsCollection) = $this->_prepareResourceCollection($resourceCollectionName);
         $list = $this->_fetchReport($resourceCollection, $totalsCollection, array(
-            'orders_count' => 'SUM(orders_count)',
-            'tax_base_amount_sum' => 'SUM(tax_base_amount_sum)',
+            'orders_count'          => array($this, '_processValueNumeric'),
+            'tax_base_amount_sum'   => array($this, '_processValueCurrency'),
+        ), array(
+            'orders_count'          => 'SUM(orders_count)',
+            'tax_base_amount_sum'   => 'SUM(tax_base_amount_sum)',
         ));
         $this->_jsonResult($list);
     }
@@ -131,10 +178,16 @@ class Neklo_Monitor_Report_SalesController extends Neklo_Monitor_Controller_Abst
 //        $resourceCollectionName = 'sales/report_invoiced_collection_order';
         list($resourceCollection, $totalsCollection) = $this->_prepareResourceCollection($resourceCollectionName);
         $list = $this->_fetchReport($resourceCollection, $totalsCollection, array(
-            'orders_count' => 'SUM(orders_count)',
-            'orders_invoiced' => 'SUM(orders_invoiced)',
-            'invoiced' => 'SUM(invoiced)',
-            'invoiced_captured' => 'SUM(invoiced_captured)',
+            'orders_count'          => array($this, '_processValueNumeric'),
+            'orders_invoiced'       => array($this, '_processValueNumeric'),
+            'invoiced'              => array($this, '_processValueCurrency'),
+            'invoiced_captured'     => array($this, '_processValueCurrency'),
+            'invoiced_not_captured' => array($this, '_processValueCurrency'),
+        ), array(
+            'orders_count'          => 'SUM(orders_count)',
+            'orders_invoiced'       => 'SUM(orders_invoiced)',
+            'invoiced'              => 'SUM(invoiced)',
+            'invoiced_captured'     => 'SUM(invoiced_captured)',
             'invoiced_not_captured' => 'SUM(invoiced_not_captured)',
         ));
         $this->_jsonResult($list);
@@ -146,8 +199,12 @@ class Neklo_Monitor_Report_SalesController extends Neklo_Monitor_Controller_Abst
 //        $resourceCollectionName = 'sales/report_shipping_collection_order';
         list($resourceCollection, $totalsCollection) = $this->_prepareResourceCollection($resourceCollectionName);
         $list = $this->_fetchReport($resourceCollection, $totalsCollection, array(
-            'orders_count' => 'SUM(orders_count)',
-            'total_shipping' => 'SUM(total_shipping)',
+            'orders_count'          => array($this, '_processValueNumeric'),
+            'total_shipping'        => array($this, '_processValueCurrency'),
+            'total_shipping_actual' => array($this, '_processValueCurrency'),
+        ), array(
+            'orders_count'          => 'SUM(orders_count)',
+            'total_shipping'        => 'SUM(total_shipping)',
             'total_shipping_actual' => 'SUM(total_shipping_actual)',
         ));
         $this->_jsonResult($list);
@@ -159,10 +216,15 @@ class Neklo_Monitor_Report_SalesController extends Neklo_Monitor_Controller_Abst
         // $resourceCollectionName = 'sales/report_refunded_collection_order';
         list($resourceCollection, $totalsCollection) = $this->_prepareResourceCollection($resourceCollectionName);
         $list = $this->_fetchReport($resourceCollection, $totalsCollection, array(
-            'orders_count' => 'SUM(orders_count)',
-            'refunded' => 'SUM(refunded)',
-            'online_refunded' => 'SUM(online_refunded)',
-            'offline_refunded' => 'SUM(offline_refunded)',
+            'orders_count'      => array($this, '_processValueNumeric'),
+            'refunded'          => array($this, '_processValueCurrency'),
+            'online_refunded'   => array($this, '_processValueCurrency'),
+            'offline_refunded'  => array($this, '_processValueCurrency'),
+        ), array(
+            'orders_count'      => 'SUM(orders_count)',
+            'refunded'          => 'SUM(refunded)',
+            'online_refunded'   => 'SUM(online_refunded)',
+            'offline_refunded'  => 'SUM(offline_refunded)',
         ));
         $this->_jsonResult($list);
     }
@@ -173,13 +235,21 @@ class Neklo_Monitor_Report_SalesController extends Neklo_Monitor_Controller_Abst
         // $resourceCollectionName = 'salesrule/report_collection';
         list($resourceCollection, $totalsCollection) = $this->_prepareResourceCollection($resourceCollectionName);
         $list = $this->_fetchReport($resourceCollection, $totalsCollection, array(
-            'coupon_uses' => 'SUM(coupon_uses)',
-            'subtotal_amount' => 'SUM(subtotal_amount)',
-            'discount_amount' => 'SUM(discount_amount)',
-            'total_amount' => 'SUM(total_amount)',
-            'subtotal_amount_actual' => 'SUM(subtotal_amount_actual)',
-            'discount_amount_actual' => 'SUM(discount_amount_actual)',
-            'total_amount_actual' => 'SUM(total_amount_actual)',
+            'coupon_uses'               => array($this, '_processValueNumeric'),
+            'subtotal_amount'           => array($this, '_processValueCurrency'),
+            'discount_amount'           => array($this, '_processValueCurrency'),
+            'total_amount'              => array($this, '_processValueCurrency'),
+            'subtotal_amount_actual'    => array($this, '_processValueCurrency'),
+            'discount_amount_actual'    => array($this, '_processValueCurrency'),
+            'total_amount_actual'       => array($this, '_processValueCurrency'),
+        ), array(
+            'coupon_uses'               => 'SUM(coupon_uses)',
+            'subtotal_amount'           => 'SUM(subtotal_amount)',
+            'discount_amount'           => 'SUM(discount_amount)',
+            'total_amount'              => 'SUM(total_amount)',
+            'subtotal_amount_actual'    => 'SUM(subtotal_amount_actual)',
+            'discount_amount_actual'    => 'SUM(discount_amount_actual)',
+            'total_amount_actual'       => 'SUM(total_amount_actual)',
         ));
         $this->_jsonResult($list);
     }

@@ -1,0 +1,8 @@
+.idea/
+
+app/locale/en_US/Neklo_Core.csv
+skin/adminhtml/default/default/neklo/core/
+app/etc/modules/Neklo_Core.xml
+app/design/adminhtml/default/default/layout/neklo/core.xml
+app/design/adminhtml/default/default/template/neklo/core/
+app/code/community/Neklo/Core/

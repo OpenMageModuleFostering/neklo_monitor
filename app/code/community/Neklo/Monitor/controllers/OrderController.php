@@ -21,6 +21,8 @@ class Neklo_Monitor_OrderController extends Neklo_Monitor_Controller_Abstract
         $page = ceil($offset / self::PAGE_SIZE) + 1;
         $collection->setPage($page, self::PAGE_SIZE);
 
+        $collection->setOrder('main_table.created_at', 'desc');
+
         $collection->getSelect()
             ->join(
                 array('ce' => $collection->getTable('customer/entity')),
@@ -34,6 +36,12 @@ class Neklo_Monitor_OrderController extends Neklo_Monitor_Controller_Abstract
 
         if ($customerId = $this->_getRequestHelper()->getParam('customer_id', null)) {
             $collection->addFieldToFilter('customer_id', $customerId);
+        }
+
+        $storeId = $this->_getRequestHelper()->getParam('store', null);
+        $store = Mage::app()->getStore($storeId);
+        if ($storeId && $store->getId()) {
+            $collection->addFieldToFilter('main_table.store_id', $store->getId());
         }
 
         $orderItemsSelect = $collection->getConnection()->select();
@@ -82,7 +90,7 @@ class Neklo_Monitor_OrderController extends Neklo_Monitor_Controller_Abstract
                 'increment_id'   => $order->getIncrementId(),
                 'created_at'     => $hlpDate->convertToTimestamp($order->getCreatedAt()),
                 'status'         => $orderStatus,
-                'grand_total'    => Mage::helper('core')->currency($order->getBaseGrandTotal(), true, false),
+                'grand_total'    => Mage::app()->getStore($order->getStoreId())->convertPrice($order->getBaseGrandTotal(), true, false),
                 'items_count'    => (int)$order->getItemsCount(),
             );
 

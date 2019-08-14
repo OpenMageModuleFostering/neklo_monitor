@@ -5,11 +5,16 @@ class Neklo_Monitor_Block_Adminhtml_System_Config_Frontend_Status extends Mage_A
     protected function _getElementHtml(Varien_Data_Form_Element_Abstract $element)
     {
         $element->setBold(true);
-        if ($this->_getConfig()->isConnected()) {
-            $element->setValue($this->__('Connected to Gateway'));
+
+        // neklo_monitor_gateway_status_sandbox || neklo_monitor_gateway_status_production
+        $name = explode('_', $element->getId());
+        $serverType = array_pop($name); // sandbox || production
+
+        if ($this->_getConfig()->isConnected($serverType)) {
+            $element->setValue($this->__('Connected to the %s Gateway', $serverType));
             $element->addClass('gateway_status')->addClass('success');
         } else {
-            $element->setValue($this->__('Not Connected to Gateway'));
+            $element->setValue($this->__('Not connected to the %s Gateway', $serverType));
             $element->addClass('gateway_status')->addClass('error');
         }
         return '<p id="'. $element->getHtmlId() . '" ' . $element->serialize($element->getHtmlAttributes()) . '>' . parent::_getElementHtml($element) .'</p>';

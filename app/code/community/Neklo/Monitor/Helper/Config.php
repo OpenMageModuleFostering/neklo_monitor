@@ -82,9 +82,11 @@ class Neklo_Monitor_Helper_Config extends Mage_Core_Helper_Data
         return Mage::helper('core')->decrypt(Mage::getStoreConfig(self::GATEWAY_SID . '_' . $serverType));
     }
 
-    public function isConnected()
+    public function isConnected($serverType = null)
     {
-        $serverType = $this->getGatewayServerType();
+        if (is_null($serverType)) {
+            $serverType = $this->getGatewayServerType();
+        }
         return Mage::getStoreConfigFlag(self::GATEWAY_SID . '_' . $serverType);
     }
 

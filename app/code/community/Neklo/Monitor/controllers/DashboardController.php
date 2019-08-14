@@ -21,8 +21,8 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
             $salesStats = $collection->getFirstItem();
 
             $result = array(
-                'lifetime' => Mage::helper('core')->currency($salesStats->getLifetime(), true, false),
-                'average'  => Mage::helper('core')->currency($salesStats->getAverage(), true, false),
+                'lifetime' => Mage::app()->getStore($storeId)->convertPrice($salesStats->getLifetime(), true, false),
+                'average'  => Mage::app()->getStore($storeId)->convertPrice($salesStats->getAverage(), true, false),
             );
         } else {
             $result = array();
@@ -78,7 +78,7 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
                 $result[] = array(
                     'id'    => $row->getData('product_id'),
                     'name'  => $row->getData('product_name'),
-                    'price' => Mage::helper('core')->currency($row->getData('product_price'), true, false),
+                    'price' => Mage::app()->getStore($storeId)->convertPrice($row->getData('product_price'), true, false),
                     'sku'   => $skuList[$row->getData('product_id')],
                     'qty'   => (int)$row->getData('qty_ordered'),
                     'image2xUrl' => $thumbList[$row->getData('product_id')]['image2xUrl'],
@@ -124,7 +124,7 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
             $result[] = array(
                 'id'    => $row->getEntityId(),
                 'name'  => $row->getName(),
-                'price' => Mage::helper('core')->currency($row->getPrice(), true, false),
+                'price' => Mage::app()->getStore($storeId)->convertPrice($row->getPrice(), true, false),
                 'sku'   => $row->getSku(),
                 'views' => (int)$row->getData('views'),
                 'image2xUrl' => $hlp->resize(224, 300)->__toString(),
@@ -172,8 +172,8 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
                 'name'                 => $row->getData('name'),
                 'created_at'           => Mage::helper('neklo_monitor/date')->convertToTimestamp($row->getData('created_at')),
                 'group'                => $customerGroup,
-                'average_order_amount' => Mage::helper('core')->currency($row->getData('orders_avg_amount'), true, false),
-                'total_order_amount'   => Mage::helper('core')->currency($row->getData('orders_sum_amount'), true, false),
+                'average_order_amount' => Mage::app()->getStore($storeId)->convertPrice($row->getData('orders_avg_amount'), true, false),
+                'total_order_amount'   => Mage::app()->getStore($storeId)->convertPrice($row->getData('orders_sum_amount'), true, false),
                 'order_count'          => (int)$row->getData('orders_count'),
             );
 
@@ -232,8 +232,8 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
                 'name'                 => $row->getData('name'),
                 'created_at'           => Mage::helper('neklo_monitor/date')->convertToTimestamp($row->getData('customer_created_at')),
                 'group'                => $customerGroup,
-                'average_order_amount' => Mage::helper('core')->currency($row->getData('orders_avg_amount'), true, false),
-                'total_order_amount'   => Mage::helper('core')->currency($row->getData('orders_sum_amount'), true, false),
+                'average_order_amount' => Mage::app()->getStore($storeId)->convertPrice($row->getData('orders_avg_amount'), true, false),
+                'total_order_amount'   => Mage::app()->getStore($storeId)->convertPrice($row->getData('orders_sum_amount'), true, false),
                 'order_count'          => (int)$row->getData('orders_count'),
             );
 
@@ -290,7 +290,7 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
                 'increment_id'   => $row->getData('increment_id'),
                 'created_at'     => Mage::helper('neklo_monitor/date')->convertToTimestamp($row->getData('created_at')),
                 'status'         => $orderStatus,
-                'grand_total'    => Mage::helper('core')->currency($row->getData('revenue'), true, false),
+                'grand_total'    => Mage::app()->getStore($storeId)->convertPrice($row->getData('revenue'), true, false),
                 'items_count'    => (int)$row->getData('items_count'),
                 'customer' => array(
                     'id'    => $row->getData('customer_id'),

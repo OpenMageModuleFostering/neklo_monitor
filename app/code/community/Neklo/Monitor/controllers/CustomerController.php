@@ -13,20 +13,21 @@ class Neklo_Monitor_CustomerController extends Neklo_Monitor_Controller_Abstract
         $collection = Mage::getResourceModel('customer/customer_collection');
         $collection
             ->addNameToSelect()
-            ->addAttributeToSelect('email')
-            ->addAttributeToSelect('created_at')
-            ->addAttributeToSelect('group_id')
+//            ->addAttributeToSelect('email')
+//            ->addAttributeToSelect('created_at')
+//            ->addAttributeToSelect('group_id')
             ->joinAttribute('billing_postcode', 'customer_address/postcode', 'default_billing', null, 'left')
             ->joinAttribute('billing_city', 'customer_address/city', 'default_billing', null, 'left')
             ->joinAttribute('billing_telephone', 'customer_address/telephone', 'default_billing', null, 'left')
             ->joinAttribute('billing_region', 'customer_address/region', 'default_billing', null, 'left')
             ->joinAttribute('billing_country_id', 'customer_address/country_id', 'default_billing', null, 'left')
-            ->setOrder('created_at')
+            ->setOrder('created_at', 'DESC')
         ;
 
         $storeId = $this->_getRequestHelper()->getParam('store', null);
-        if ($storeId) {
-            $collection->addFieldToFilter('store_id', $storeId);
+        $store = Mage::app()->getStore($storeId);
+        if ($storeId && $store->getId()) {
+            $collection->addFieldToFilter('website_id', $store->getWebsiteId());
         }
 
         $queryTimestamp = (int) $this->_getRequestHelper()->getParam('query_timestamp', 0);
@@ -44,6 +45,28 @@ class Neklo_Monitor_CustomerController extends Neklo_Monitor_Controller_Abstract
             ->load()
             ->toOptionHash()
         ;
+
+        $customerIds = $collection->getAllIds();
+        /* @var $orders Mage_Sales_Model_Mysql4_Order_Collection */
+        $orders = Mage::getResourceModel('sales/order_collection');
+        $orders->addFieldToFilter('customer_id', array('in' => $customerIds));
+        $orders->addFieldToFilter('state', array('neq' => Mage_Sales_Model_Order::STATE_CANCELED));
+
+        $expr = ($storeId == 0)
+            ? '(main_table.base_subtotal-IFNULL(main_table.base_subtotal_refunded,0)-IFNULL(main_table.base_subtotal_canceled,0))*main_table.base_to_global_rate'
+            : 'main_table.base_subtotal-IFNULL(main_table.base_subtotal_canceled,0)-IFNULL(main_table.base_subtotal_refunded,0)';
+
+        $orders->getSelect()
+            ->group('customer_id')
+            ->columns(array(
+                'average_order_amount' => 'AVG('.$expr.')',
+                'total_order_amount' => 'SUM('.$expr.')',
+                'order_count' => 'COUNT(entity_id)',
+                ));
+        $ordersCount = array();
+        foreach ($orders as $_data) {
+            $ordersCount[$_data->getCustomerId()] = $_data->getData();
+        }
 
         $customerList = array(
             'result' => array(),
@@ -67,10 +90,19 @@ class Neklo_Monitor_CustomerController extends Neklo_Monitor_Controller_Abstract
                 'billing_city'      => $customer->getData('billing_city'),
                 'billing_postcode'  => $customer->getData('billing_postcode'),
                 'billing_telephone' => $customer->getData('billing_telephone'),
+                'average_order_amount' => Mage::app()->getStore($storeId)->convertPrice(0, true, false),
+                'total_order_amount'   => Mage::app()->getStore($storeId)->convertPrice(0, true, false),
+                'order_count'          => 0,
             );
+            if (array_key_exists($customer->getData('entity_id'), $ordersCount)) {
+                $customerData['average_order_amount'] = Mage::app()->getStore($storeId)->convertPrice($ordersCount[$customer->getData('entity_id')]['average_order_amount']*1, true, false);
+                $customerData['total_order_amount']   = Mage::app()->getStore($storeId)->convertPrice($ordersCount[$customer->getData('entity_id')]['total_order_amount']*1, true, false);
+                $customerData['order_count']          = (int)$ordersCount[$customer->getData('entity_id')]['order_count'];
+            }
 
             $customerList['result'][] = $customerData;
         }
+//        $customerList['sql'] = $collection->getSelectSql(true);
 
         // get new entities count
 
@@ -170,6 +202,8 @@ class Neklo_Monitor_CustomerController extends Neklo_Monitor_Controller_Abstract
         $page = ceil($offset / self::PAGE_SIZE) + 1;
         $collection->setCurPage($page);
         $collection->setPageSize(self::PAGE_SIZE);
+
+        $collection->setOrder('last_visit_at');
 
         $visitorList = array(
             'result' => array(),
