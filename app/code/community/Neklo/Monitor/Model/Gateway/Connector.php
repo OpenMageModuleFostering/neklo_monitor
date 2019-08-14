@@ -4,11 +4,97 @@ class Neklo_Monitor_Model_Gateway_Connector
 {
     protected $_client = null;
 
+    public function connect()
+    {
+        $requestData = array(
+            'token'             => $this->_getConfig()->getToken(),
+            'url'               => Mage::getBaseUrl(),
+            'platform'          => $this->_getConfig()->getPlatform(),
+            'platform_version'  => Mage::getVersion(),
+            'connector_version' => $this->_getConfig()->getModuleVersion(),
+        );
+        return $this->_request('store', 'connect', $requestData);
+    }
+
+    public function disconnect()
+    {
+        $result = $this->_request('store', 'disconnect');
+        $this->_getConfig()->disconnect();
+        return $result;
+    }
+
+    public function addAccount(array $accountData)
+    {
+        return $this->_request('account', 'add', $accountData);
+    }
+
+    public function removeAccount($phoneHash)
+    {
+        $requestData = array(
+            'phone_hash' => $phoneHash,
+        );
+        return $this->_request('account', 'remove', $requestData);
+    }
+
+    public function sendInfo($type, $info, $action = 'info')
+    {
+        $requestData = array(
+            $type => $info,
+        );
+        return $this->_request('server', $action, $requestData);
+    }
+
+    // TODO: check base64
+    public function sendAlert($info)
+    {
+        $requestData = $info;
+        return $this->_request('server', 'alert', $requestData);
+    }
+
+    protected function _request($controller, $action, array $data = array())
+    {
+        $uri = $this->_getUri($controller, $action);
+
+        $data['SID'] = $this->_getConfig()->getGatewaySid();
+
+        $client = $this->_getClient();
+        $client->setUri($uri);
+        $client->setRawData(Mage::helper('core')->jsonEncode($data));
+
+        $result = $client->request();
+
+        if (!$result->isSuccessful()) {
+            throw new Exception(
+                Mage::helper('core')->__('Error sending request to %s: %s', $uri, $result->getMessage())
+            );
+        }
+
+        // TODO: update frequency config
+
+        // TODO: improve gateway errors
+//        if (!$result->isSuccessful()) {
+//            try {
+//                $errorResult = Mage::helper('core')->jsonDecode($this->_getBody($result));
+//                $message = Mage::helper('core')->__('Gateway: %s', $errorResult['message']);
+//            } catch (Exception $e) {
+//                $message = $result->getMessage();
+//            }
+//            throw new Exception($message);
+//        }
+
+        return Mage::helper('core')->jsonDecode($this->_getBody($result));
+    }
+
+    protected function _getUri($controller, $action)
+    {
+        return $this->_getConfig()->getGatewayServerUri() . $controller . '/' . $action;
+    }
+
     /**
      * @return null|Varien_Http_Client
      * @throws Zend_Http_Client_Exception
      */
-    public function getClient()
+    protected function _getClient()
     {
         if ($this->_client === null) {
             $this->_client = new Varien_Http_Client();
@@ -21,42 +107,13 @@ class Neklo_Monitor_Model_Gateway_Connector
                         'verifypeer'   => 0,
                     )
                 )
+                ->setHeaders(
+                    Neklo_Monitor_Helper_Header::GATEWAY_API_VERSION_HEADER,
+                    $this->_getConfig()->getGatewayApiVersion()
+                )
             ;
         }
         return $this->_client;
-    }
-
-    public function sendInfo($type, $info, $action = 'info')
-    {
-        if (is_null($type)) {
-            // multiple types, $info is an assoc array
-            $requestData = $info;
-        } else {
-            $requestData = array(
-                $type => $info,
-            );
-        }
-
-        $requestData['SID'] = $this->_getConfig()->getGatewaySid();
-
-        $client = $this->getClient();
-
-        $url = $this->_getUri($action);
-        $client->setUri($url);
-        $client->setRawData(Mage::helper('core')->jsonEncode($requestData));
-
-        $result = $client->request();
-
-        if (!$result->isSuccessful()) {
-            throw new Exception(Mage::helper('core')->__('Error sending request to %s: %s', $url, $result->getMessage()));
-        }
-
-        return Mage::helper('core')->jsonDecode($this->_getBody($result));
-    }
-
-    protected function _getUri($action)
-    {
-        return $this->_getConfig()->getGatewayServerUri() . 'server/' . $action;
     }
 
     /**
@@ -107,5 +164,4 @@ class Neklo_Monitor_Model_Gateway_Connector
 
         return $body;
     }
-
 }

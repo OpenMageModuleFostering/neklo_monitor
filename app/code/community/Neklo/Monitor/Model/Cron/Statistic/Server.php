@@ -1,6 +1,6 @@
 <?php
 
-class Neklo_Monitor_Model_Cron_Server extends Neklo_Monitor_Model_Cron_Abstract
+class Neklo_Monitor_Model_Cron_Statistic_Server extends Neklo_Monitor_Model_Cron_Statistic
 {
     protected $_name = 'neklo_monitor_cron_server_lock_id';
 
@@ -11,7 +11,7 @@ class Neklo_Monitor_Model_Cron_Server extends Neklo_Monitor_Model_Cron_Abstract
             $gatewayConfig = $this->_getConnector()->sendInfo('server', $serverData);
             $this->_getConfig()->updateGatewayConfig($gatewayConfig);
         } catch (Exception $e) {
-//            Mage::logException($e);
+            Mage::logException($e);
             $msg = $schedule->getMessages();
             if ($msg) {
                 $msg .= "\n";

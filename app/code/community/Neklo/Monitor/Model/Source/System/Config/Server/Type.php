@@ -1,6 +1,6 @@
 <?php
 
-class Neklo_Monitor_Model_System_Config_Source_Server_Type
+class Neklo_Monitor_Model_Source_System_Config_Server_Type
 {
     const PRODUCTION_CODE = 'production';
     const PRODUCTION_LABEL = 'Production';

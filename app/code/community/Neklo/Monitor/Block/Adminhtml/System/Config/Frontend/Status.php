@@ -13,6 +13,7 @@ class Neklo_Monitor_Block_Adminhtml_System_Config_Frontend_Status extends Mage_A
         if ($this->_getConfig()->isConnected($serverType)) {
             $element->setValue($this->__('Connected to the %s Gateway', $serverType));
             $element->addClass('gateway_status')->addClass('success');
+            $element->setComment('');
         } else {
             $element->setValue($this->__('Not connected to the %s Gateway', $serverType));
             $element->addClass('gateway_status')->addClass('error');

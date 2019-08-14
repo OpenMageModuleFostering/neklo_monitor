@@ -2,7 +2,9 @@
 <config>
     <modules>
         <Neklo_Monitor>
-            <version>1.2.2</version>
+            <version>1.3.0</version>
+            <api_version>1.3.0</api_version>
+            <platform>Magento1</platform>
         </Neklo_Monitor>
     </modules>
     <global>
@@ -36,6 +38,7 @@
                     <log><table>neklo_monitor_log</table></log>
                     <queue><table>neklo_monitor_queue</table></queue>
                     <cicl><table>neklo_monitor_cataloginventory_cl</table></cicl>
+                    <account><table>neklo_monitor_account</table></account>
                 </entities>
             </neklo_monitor_resource>
         </models>
@@ -49,13 +52,18 @@
         <events>
             <sales_order_place_after>
                 <observers>
-                    <neklo_monitor_orders>
+                    <neklo_monitor_order_place_after>
                         <class>neklo_monitor/observer</class>
-                        <method>checkOrder</method>
-                    </neklo_monitor_orders>
+                        <method>orderPlaceAfter</method>
+                    </neklo_monitor_order_place_after>
                 </observers>
             </sales_order_place_after>
         </events>
+        <log>
+            <core>
+                <writer_model>Neklo_Monitor_Model_Log_Writer_Stream</writer_model>
+            </core>
+        </log>
     </global>
     <frontend>
         <routers>
@@ -68,6 +76,29 @@
             </neklo_monitor>
         </routers>
     </frontend>
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <Neklo_Monitor before="Mage_Adminhtml">Neklo_Monitor_Adminhtml</Neklo_Monitor>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
+    <adminhtml>
+        <events>
+            <controller_action_predispatch_adminhtml_system_config_edit>
+                <observers>
+                    <neklo_ldap_config_page>
+                        <class>neklo_monitor/observer</class>
+                        <method>actionPreDispatchConfigPage</method>
+                    </neklo_ldap_config_page>
+                </observers>
+            </controller_action_predispatch_adminhtml_system_config_edit>
+        </events>
+    </adminhtml>
     <crontab>
         <jobs>
             <neklo_monitor_send_server_info>
@@ -75,7 +106,7 @@
                     <cron_expr>* * * * *</cron_expr>
                 </schedule>
                 <run>
-                    <model>neklo_monitor/cron_server::run</model>
+                    <model>neklo_monitor/cron::sendServerInfo</model>
                 </run>
             </neklo_monitor_send_server_info>
             <neklo_monitor_send_store_info>
@@ -83,41 +114,42 @@
                     <cron_expr>* * * * *</cron_expr>
                 </schedule>
                 <run>
-                    <model>neklo_monitor/cron_store::run</model>
+                    <model>neklo_monitor/cron::sendStoreInfo</model>
                 </run>
             </neklo_monitor_send_store_info>
-            <neklo_monitor_collect_store>
+            <neklo_monitor_collect_var_reports>
                 <schedule>
                     <cron_expr>*/5 * * * *</cron_expr>
                 </schedule>
                 <run>
-                    <model>neklo_monitor/cron_store::collect</model>
+                    <model>neklo_monitor/cron::collectVarReports</model>
                 </run>
-            </neklo_monitor_collect_store>
-            <neklo_monitor_changelog_process>
+            </neklo_monitor_collect_var_reports>
+            <neklo_monitor_convert_invetory_changelog_to_queue>
                 <schedule>
                     <cron_expr>* * * * *</cron_expr>
                 </schedule>
                 <run>
-                    <model>neklo_monitor/observer::convertChangelogToQueue</model>
+                    <model>neklo_monitor/cron::convertInventoryChangelogToQueue</model>
                 </run>
-            </neklo_monitor_changelog_process>
-            <neklo_monitor_queue>
-                <schedule>
-                    <cron_expr>* * * * *</cron_expr>
-                </schedule>
-                <run>
-                    <model>neklo_monitor/observer::sendQueuedRequest</model>
-                </run>
-            </neklo_monitor_queue>
+            </neklo_monitor_convert_invetory_changelog_to_queue>
+
             <neklo_monitor_aggregate_sales_report_order_data>
                 <schedule>
                     <cron_expr>5 0 * * *</cron_expr>
                 </schedule>
                 <run>
-                    <model>neklo_monitor/observer::aggregateSalesReportOrderData</model>
+                    <model>neklo_monitor/cron::aggregateSalesReportOrderData</model>
                 </run>
             </neklo_monitor_aggregate_sales_report_order_data>
+            <neklo_monitor_send_queue>
+                <schedule>
+                    <cron_expr>* * * * *</cron_expr>
+                </schedule>
+                <run>
+                    <model>neklo_monitor/cron::sendQueue</model>
+                </run>
+            </neklo_monitor_send_queue>
         </jobs>
     </crontab>
     <default>

@@ -1,0 +1,268 @@
+<?php /* @var $this Neklo_Monitor_Block_Adminhtml_System_Config_Fieldset_Account_List */ ?>
+<?php $_htmlId = $this->getHtmlId() ? $this->getHtmlId() : '_' . uniqid(); ?>
+
+<tr><td>
+
+<div class="grid" id="grid<?php echo $_htmlId ?>" style="padding-left:5px;">
+    <table cellpadding="0" cellspacing="0" class="border">
+        <tbody>
+            <tr class="headings" id="headings<?php echo $_htmlId ?>">
+                <?php foreach ($this->_columns as $columnName => $column): ?>
+                    <th style="<?php echo $column['style'] ?>"><?php echo $column['label'] ?></th>
+                <?php endforeach; ?>
+                <th><?php echo $this->__('Actions'); ?></th>
+            </tr>
+            <tr id="addRow<?php echo $_htmlId ?>">
+                <td colspan="<?php echo count($this->_columns) ?>" class="neklo-monitor-message-conteiner">
+                    <span id="neklo_monitor_account_message" class="neklo-monitor-account-message" style="display:none;"></span>
+                </td>
+                <td colspan="1">
+                    <button onclick="accountRow<?php echo $_htmlId ?>.add();" class="scalable add" type="button">
+                        <span><span><span><?php echo $this->_addButtonLabel ?></span></span></span>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script type="text/template" id="account-template">
+    <tr id="#{_id}">
+        <?php foreach ($this->_columns as $columnName => $column):?>
+        <td>
+            <?php echo Mage::helper('core')->jsQuoteEscape($this->_renderCellTemplate($columnName)) ?>
+        </td>
+        <?php endforeach;?>
+        <td class="account-actions">
+            <button id="saveBtn#{_id}" onclick="accountRow<?php echo $_htmlId ?>.saveAccount('#{_id}')" class="scalable save action-button" type="button">
+                <span><span><span><?php echo Mage::helper('core')->jsQuoteEscape($this->__('Save')) ?></span></span></span>
+            </button>
+            <button id="delBtn#{_id}" onclick="accountRow<?php echo $_htmlId ?>.deleteAccount('#{_id}')" class="scalable delete action-button" type="button">
+                <span><span><span><?php echo Mage::helper('core')->jsQuoteEscape(Mage::helper('adminhtml')->__('Delete')) ?></span></span></span>
+            </button>
+        </td>
+    </tr>
+</script>
+
+<script type="text/javascript">
+//<![CDATA[
+    var accountRow<?php echo $_htmlId ?> = {
+        template: new Template($('account-template').innerHTML),
+
+        add: function (templateData) {
+            // generate default template data
+            if (arguments.length == 0) {
+                var d = new Date();
+                templateData = {
+                    <?php foreach ($this->_columns as $columnName => $column): ?>
+                        <?php echo $columnName ?> : '',
+                    <?php endforeach;?>
+                    _id : 'new_' + d.getTime() + '_' + d.getMilliseconds()
+                };
+            }
+
+            Element.insert($('addRow<?php echo $_htmlId ?>'), {before: this.template.evaluate(templateData)});
+
+            if (arguments.length) {
+                this._disableRow(templateData._id);
+                this._hideSaveButton(templateData._id);
+            }
+        },
+
+        deleteAccount: function (rowId) {
+            if (!this._isNew(rowId)) {
+                this._deleteAccount(rowId);
+            } else {
+                $(rowId).remove();
+            }
+        },
+
+        _isNew: function(rowId) {
+            return rowId.indexOf('new_') >= 0;
+        },
+
+        _deleteAccount: function(rowId) {
+            var me = this;
+            new Ajax.Request(
+                '<?php echo $this->getRemoveUrl(); ?>',
+                {
+                    parameters: {
+                        'entity_id': rowId
+                    },
+                    method: 'POST',
+                    onCreate: function() {
+                        me.hideMessage();
+                    },
+                    onSuccess: function (transport) {
+                        try {
+                            eval("var json = " +  transport.responseText);
+                        } catch(e) {
+                            location.reload();
+                        }
+
+                        if (!json.success) {
+                            if (json.messages && json.messages.length) {
+                                me.showError(json.messages.first());
+                            }
+                        } else {
+                            if (json.messages && json.messages.length) {
+                                me.showSuccess(json.messages.first());
+                            }
+                            $(rowId).remove();
+                        }
+                    },
+                    onFailure: function (transport) {
+                        try {
+                            eval("var json = " +  transport.responseText);
+                        } catch(e) {
+                            location.reload();
+                        }
+
+                        if (json.messages && json.messages.length) {
+                            me.showSuccess(json.messages.first());
+                        }
+                    }
+                }
+            );
+        },
+
+        saveAccount: function (rowId) {
+            var elements = $(rowId).select('input');
+
+            var isValid = true;
+            elements.each(function (element) {
+                isValid = Validation.validate(element) && isValid;
+            });
+
+            if (isValid) {
+                var data = {};
+                elements.each(function (element) {
+                    var inputName = element.readAttribute('name');
+                    inputName = inputName
+                        .replace('[' + rowId + ']', '')
+                        .replace('[', '')
+                        .replace(']', '')
+                    ;
+                    data[inputName] = element.getValue();
+                });
+
+                this._saveAccount(rowId, data);
+            }
+        },
+
+        _saveAccount: function (rowId, data) {
+            var me = this;
+            new Ajax.Request(
+                '<?php echo $this->getSaveUrl(); ?>',
+                {
+                    parameters: data,
+                    method: 'POST',
+                    onCreate: function() {
+                        me.hideMessage();
+                    },
+                    onSuccess: function (transport) {
+                        try {
+                            eval("var json = " +  transport.responseText);
+                        } catch(e) {
+                            location.reload();
+                        }
+
+                        if (!json.success) {
+                            if (json.messages && json.messages.length) {
+                                me.showError(json.messages.first());
+                            }
+                        } else {
+                            if (json.messages && json.messages.length) {
+                                me.showSuccess(json.messages.first());
+                            }
+
+                            data.phone_mask = json.account.phone_mask;
+
+                            me._disableRow(rowId);
+                            me._hideSaveButton(rowId);
+                            me._updateDeleteButton(rowId, json.account.id, data);
+                        }
+                    },
+                    onFailure: function (transport) {
+                        try {
+                            eval("var json = " +  transport.responseText);
+                        } catch(e) {
+                            location.reload();
+                        }
+
+                        if (json.messages && json.messages.length) {
+                            me.showSuccess(json.messages.first());
+                        }
+                    }
+                }
+            );
+        },
+
+        _disableRow: function (rowId) {
+            var elements = $(rowId).select('input');
+            elements.invoke('disable');
+            elements.invoke('addClassName', 'input-disabled');
+        },
+
+        _hideSaveButton: function(rowId) {
+            var saveButton = $('saveBtn' + rowId);
+            if (saveButton) {
+                saveButton.hide();
+            }
+        },
+
+        _updateDeleteButton: function(oldId, newId, data) {
+            var row = $(oldId);
+            if (row) {
+                var updatedRowHtml = row.outerHTML.replace(new RegExp(oldId, 'g'), newId);
+                row.outerHTML = updatedRowHtml;
+                $H(data).each(function(dataItem) {
+                    var dataInput = $$('input[name="[' + newId + '][' + dataItem.key + ']"]').first();
+                    if (dataInput) {
+                        dataInput.setValue(dataItem.value);
+                    }
+                });
+            }
+        },
+
+        showSuccess: function(message) {
+            this._showMessage(message, 'success', 'error');
+        },
+
+        showError: function(message) {
+            this._showMessage(message, 'error', 'success');
+        },
+
+        hideMessage: function() {
+            var messageContainer = $('neklo_monitor_account_message');
+            if (messageContainer) {
+                messageContainer.update('');
+                messageContainer.hide();
+            }
+        },
+
+        _showMessage: function(message, addClassName, removeClassName) {
+            var messageContainer = $('neklo_monitor_account_message');
+            if (messageContainer) {
+                messageContainer.update(message);
+                messageContainer.removeClassName(removeClassName);
+                messageContainer.addClassName(addClassName);
+                messageContainer.show();
+            }
+        }
+    };
+
+    // add existing rows
+    <?php foreach ($this->getAccountRows() as $accountId => $account): ?>
+        accountRow<?php echo $_htmlId; ?>.add(<?php echo $account->toJson(); ?>);
+    <?php endforeach; ?>
+
+    // Validation
+    Validation.add('validate-neklo-monitor-phone', 'Requires E.164 number formatting for phone number.', function(v) {
+        return Validation.get('IsEmpty').test(v) || /^\+[1-9]\d{1,14}$/.test(v);
+    });
+
+//]]>
+</script>
+
+</td></tr>

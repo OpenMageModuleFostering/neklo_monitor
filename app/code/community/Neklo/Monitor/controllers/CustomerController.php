@@ -30,12 +30,6 @@ class Neklo_Monitor_CustomerController extends Neklo_Monitor_Controller_Abstract
             $collection->addFieldToFilter('website_id', $store->getWebsiteId());
         }
 
-        $queryTimestamp = (int) $this->_getRequestHelper()->getParam('query_timestamp', 0);
-        $queryDate = $hlpDate->convertToString($queryTimestamp);
-        if ($queryTimestamp > 0) {
-            $collection->addFieldToFilter('created_at', array('lt' => $queryDate));
-        }
-
         $offset = $this->_getRequestHelper()->getParam('offset', 0);
         $page = ceil($offset / self::PAGE_SIZE) + 1;
         $collection->setPage($page, self::PAGE_SIZE);
@@ -46,22 +40,20 @@ class Neklo_Monitor_CustomerController extends Neklo_Monitor_Controller_Abstract
             ->toOptionHash()
         ;
 
-        $customerIds = $collection->getAllIds(self::PAGE_SIZE, $offset);
-        /*
-        $customerIds = array(); // // getAllIds without parameters resets limits and pages
+        $customerIds = array(); // getAllIds without parameters resets limits and pages
         foreach ($collection as $customer) {
             $customerIds[] = $customer->getData('entity_id');
         }
-        */
 
         /* @var $orders Mage_Sales_Model_Mysql4_Order_Collection */
         $orders = Mage::getResourceModel('sales/order_collection');
         $orders->addFieldToFilter('customer_id', array('in' => $customerIds));
         $orders->addFieldToFilter('state', array('neq' => Mage_Sales_Model_Order::STATE_CANCELED));
 
-        $expr = ($storeId == 0)
-            ? '(main_table.base_subtotal-IFNULL(main_table.base_subtotal_refunded,0)-IFNULL(main_table.base_subtotal_canceled,0))*main_table.base_to_global_rate'
-            : 'main_table.base_subtotal-IFNULL(main_table.base_subtotal_canceled,0)-IFNULL(main_table.base_subtotal_refunded,0)';
+//        $expr = ($storeId == 0)
+//            ? '(main_table.base_subtotal-IFNULL(main_table.base_subtotal_refunded,0)-IFNULL(main_table.base_subtotal_canceled,0))*main_table.base_to_global_rate'
+//            : 'main_table.base_subtotal-IFNULL(main_table.base_subtotal_canceled,0)-IFNULL(main_table.base_subtotal_refunded,0)';
+        $expr = 'main_table.base_grand_total-IFNULL(main_table.base_total_canceled,0)-IFNULL(main_table.base_total_refunded,0)';
 
         $orders->getSelect()
             ->group('customer_id')
@@ -97,13 +89,13 @@ class Neklo_Monitor_CustomerController extends Neklo_Monitor_Controller_Abstract
                 'billing_city'      => $customer->getData('billing_city'),
                 'billing_postcode'  => $customer->getData('billing_postcode'),
                 'billing_telephone' => $customer->getData('billing_telephone'),
-                'average_order_amount' => Mage::app()->getStore($storeId)->convertPrice(0, true, false),
-                'total_order_amount'   => Mage::app()->getStore($storeId)->convertPrice(0, true, false),
+                'average_order_amount' => $this->_processValueCurrency(0),
+                'total_order_amount'   => $this->_processValueCurrency(0),
                 'order_count'          => 0,
             );
             if (array_key_exists($customer->getData('entity_id'), $ordersCount)) {
-                $customerData['average_order_amount'] = Mage::app()->getStore($storeId)->convertPrice($ordersCount[$customer->getData('entity_id')]['average_order_amount']*1, true, false);
-                $customerData['total_order_amount']   = Mage::app()->getStore($storeId)->convertPrice($ordersCount[$customer->getData('entity_id')]['total_order_amount']*1, true, false);
+                $customerData['average_order_amount'] = $this->_processValueCurrency($ordersCount[$customer->getData('entity_id')]['average_order_amount']*1);
+                $customerData['total_order_amount']   = $this->_processValueCurrency($ordersCount[$customer->getData('entity_id')]['total_order_amount']*1);
                 $customerData['order_count']          = (int)$ordersCount[$customer->getData('entity_id')]['order_count'];
             }
 
@@ -112,8 +104,9 @@ class Neklo_Monitor_CustomerController extends Neklo_Monitor_Controller_Abstract
 //        $customerList['sql'] = $collection->getSelectSql(true);
 
         // get new entities count
-
+        $queryTimestamp = (int) $this->_getRequestHelper()->getParam('query_timestamp', 0);
         if ($queryTimestamp > 0) {
+            $queryDate = $hlpDate->convertToString($queryTimestamp);
             /* @var $collection Mage_Customer_Model_Entity_Customer_Collection */
             $collection = Mage::getResourceModel('customer/customer_collection');
             $collection->addFieldToFilter('created_at', array('gteq' => $queryDate));
@@ -163,9 +156,9 @@ class Neklo_Monitor_CustomerController extends Neklo_Monitor_Controller_Abstract
             ->joinAttribute('billing_country_id', 'customer_address/country_id', 'default_billing', null, 'left')
         ;
 
-        /** @var Neklo_Monitor_Helper_Date $hlpDate */
+        /* @var Neklo_Monitor_Helper_Date $hlpDate */
         $hlpDate = Mage::helper('neklo_monitor/date');
-        /** @var Neklo_Monitor_Helper_Country $hlpCountry */
+        /* @var Neklo_Monitor_Helper_Country $hlpCountry */
         $hlpCountry = Mage::helper('neklo_monitor/country');
 
         $customerList = array();
@@ -196,14 +189,9 @@ class Neklo_Monitor_CustomerController extends Neklo_Monitor_Controller_Abstract
 
         /* @var $collection Mage_Log_Model_Mysql4_Visitor_Online_Collection */
         $collection = $logModel->getCollection();
-        $collection->addFieldToFilter('last_url', array('nlike' => '%neklo_monitor%'));
-
-        // for pages lists - load next page rows despite newly inserted rows
-        $queryTimestamp = (int) $this->_getRequestHelper()->getParam('query_timestamp', 0);
-        $queryDate = $hlpDate->convertToString($queryTimestamp);
-        if ($queryTimestamp > 0) {
-            $collection->addFieldToFilter('last_visit_at', array('lt' => $queryDate));
-        }
+        $collection
+            ->addFieldToFilter('last_url', array('nlike' => '%neklo_monitor%'))
+            ->addFieldToFilter('customer_id', array('notnull' => true));
 
         $offset = $this->_getRequestHelper()->getParam('offset', 0);
         $page = ceil($offset / self::PAGE_SIZE) + 1;
@@ -237,8 +225,9 @@ class Neklo_Monitor_CustomerController extends Neklo_Monitor_Controller_Abstract
         }
 
         // get new entities count
-
+        $queryTimestamp = (int) $this->_getRequestHelper()->getParam('query_timestamp', 0);
         if ($queryTimestamp > 0) {
+            $queryDate = $hlpDate->convertToString($queryTimestamp);
             /* @var $collection Mage_Log_Model_Mysql4_Visitor_Online_Collection */
             $collection = $logModel->getCollection();
             $collection->addFieldToFilter('last_url', array('nlike' => '%neklo_monitor%'));
@@ -248,6 +237,11 @@ class Neklo_Monitor_CustomerController extends Neklo_Monitor_Controller_Abstract
         }
 
         $this->_jsonResult($visitorList);
+    }
+
+    protected function _processValueCurrency($value)
+    {
+        return Mage::helper('core')->currency($value, true, false);
     }
 
 }

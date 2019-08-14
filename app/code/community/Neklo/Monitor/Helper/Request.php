@@ -25,9 +25,8 @@ class Neklo_Monitor_Helper_Request
         ),
 
         'auth/ping' => array(),
-        'auth/index' => array( // common//common + token
+        'auth/index' => array(
             'sid',
-            'device_id',
             'plan',
             'token',
         ),
@@ -81,7 +80,6 @@ class Neklo_Monitor_Helper_Request
         'customer/list'          => 'dashboard//common',
         'customer/online'        => 'dashboard//common',
 
-        'config/alertsave'       => 'dashboard//common',
         'product/outofstock'     => 'dashboard//common',
         'order/list'             => 'dashboard//common',
 

@@ -23,17 +23,6 @@ class Neklo_Monitor_OrderController extends Neklo_Monitor_Controller_Abstract
 
         $collection->setOrder('main_table.created_at', 'desc');
 
-        $collection->getSelect()
-            ->join(
-                array('ce' => $collection->getTable('customer/entity')),
-                'main_table.customer_id = ce.entity_id',
-                array(
-                    'email'             => 'ce.email',
-                    'customer_group_id' => 'ce.group_id',
-                )
-            )
-        ;
-
         if ($customerId = $this->_getRequestHelper()->getParam('customer_id', null)) {
             $collection->addFieldToFilter('customer_id', $customerId);
         }
@@ -44,24 +33,14 @@ class Neklo_Monitor_OrderController extends Neklo_Monitor_Controller_Abstract
             $collection->addFieldToFilter('main_table.store_id', $store->getId());
         }
 
-        $orderItemsSelect = $collection->getConnection()->select();
-        $orderItemsSelect
-            ->from(
-                $collection->getTable('sales/order_item'),
-                array(
-                    'order_id'    => 'order_id',
-                    'items_count' => 'count(item_id)',
-                )
-            )
-            ->group('order_id')
-        ;
-
         $collection->getSelect()
             ->join(
-                array('oi' => $orderItemsSelect),
-                'main_table.entity_id = oi.order_id',
+                array('o' => $collection->getTable('sales/order')),
+                'main_table.entity_id = o.entity_id',
                 array(
-                    'items_count' => 'oi.items_count',
+                    'email' => 'o.customer_email',
+                    'customer_group_id' => 'o.customer_group_id',
+                    'items_count' => 'o.total_item_count',
                 )
             )
         ;

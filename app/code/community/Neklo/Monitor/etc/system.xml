@@ -25,179 +25,108 @@
                     <show_in_store>0</show_in_store>
                     <expanded>1</expanded>
                     <fields>
+                        <installed_version translate="label">
+                            <label>Installed Version</label>
+                            <frontend_type>label</frontend_type>
+                            <frontend_model>neklo_monitor/adminhtml_system_config_frontend_version_current</frontend_model>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </installed_version>
+                        <last_version translate="label">
+                            <label>Last Version</label>
+                            <frontend_type>label</frontend_type>
+                            <frontend_model>neklo_monitor/adminhtml_system_config_frontend_version_last</frontend_model>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </last_version>
                         <is_enabled translate="label">
                             <label>Is Enabled</label>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>10</sort_order>
+                            <sort_order>30</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
                         </is_enabled>
                     </fields>
                 </general>
-                <!--security translate="label">
-                    <label>Security Settings</label>
+                <gateway>
+                    <label>Gateway Connection</label>
                     <frontend_type>text</frontend_type>
                     <sort_order>20</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>0</show_in_website>
                     <show_in_store>0</show_in_store>
                     <fields>
-                    </fields>
-                </security-->
-                <gateway>
-                    <label>Gateway Connection</label>
-                    <frontend_type>text</frontend_type>
-                    <sort_order>30</sort_order>
-                    <show_in_default>1</show_in_default>
-                    <show_in_website>0</show_in_website>
-                    <show_in_store>0</show_in_store>
-                    <fields>
-                        <token translate="label">
-                            <label>Token</label>
-                            <frontend_type>label</frontend_type>
-                            <backend_model>neklo_monitor/system_config_backend_token</backend_model>
-                            <sort_order>19</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>0</show_in_website>
-                            <show_in_store>0</show_in_store>
-                        </token>
-                        <!--server_type>
-                            <label>Server Type</label>
-                            <frontend_type>select</frontend_type>
-                            <source_model>neklo_monitor/system_config_source_server_type</source_model>
-                            <sort_order>10</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>0</show_in_website>
-                            <show_in_store>0</show_in_store>
-                        </server_type-->
                         <status_production translate="label">
                             <label>Status</label>
                             <frontend_type>label</frontend_type>
                             <frontend_model>neklo_monitor_adminhtml/system_config_frontend_status</frontend_model>
                             <backend_model>neklo_monitor/system_config_backend_empty</backend_model>
-                            <sort_order>20</sort_order>
+                            <sort_order>10</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
                             <depends>
                                 <server_type>production</server_type>
                             </depends>
+                            <comment><![CDATA[To connect to the production Gateway,<br>click the “<b>Connect to Gateway</b>” button.]]></comment>
                         </status_production>
-                        <!--status_sandbox translate="label">
-                            <label>Status</label>
-                            <frontend_type>label</frontend_type>
-                            <frontend_model>neklo_monitor_adminhtml/system_config_frontend_status</frontend_model>
-                            <backend_model>neklo_monitor/system_config_backend_empty</backend_model>
+                        <connect>
+                            <frontend_model>neklo_monitor_adminhtml/system_config_frontend_button</frontend_model>
                             <sort_order>20</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
-                            <depends>
-                                <server_type>sandbox</server_type>
-                            </depends>
-                        </status_sandbox>
-                        <plan_production translate="label">
-                            <label>Plan</label>
-                            <frontend_type>label</frontend_type>
-                            <frontend_model>neklo_monitor_adminhtml/system_config_frontend_label</frontend_model>
-                            <sort_order>30</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>0</show_in_website>
-                            <show_in_store>0</show_in_store>
-                            <depends>
-                                <server_type>production</server_type>
-                            </depends>
-                        </plan_production>
-                        <plan_sandbox translate="label">
-                            <label>Plan</label>
-                            <frontend_type>label</frontend_type>
-                            <frontend_model>neklo_monitor_adminhtml/system_config_frontend_label</frontend_model>
-                            <sort_order>30</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>0</show_in_website>
-                            <show_in_store>0</show_in_store>
-                            <depends>
-                                <server_type>sandbox</server_type>
-                            </depends>
-                        </plan_sandbox>
-                        <frequency_production translate="label">
-                            <label>Frequency</label>
-                            <frontend_type>label</frontend_type>
-                            <frontend_model>neklo_monitor_adminhtml/system_config_frontend_label</frontend_model>
-                            <sort_order>40</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>0</show_in_website>
-                            <show_in_store>0</show_in_store>
-                            <depends>
-                                <server_type>production</server_type>
-                            </depends>
-                        </frequency_production>
-                        <frequency_sandbox translate="label">
-                            <label>Frequency</label>
-                            <frontend_type>label</frontend_type>
-                            <frontend_model>neklo_monitor_adminhtml/system_config_frontend_label</frontend_model>
-                            <sort_order>40</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>0</show_in_website>
-                            <show_in_store>0</show_in_store>
-                            <depends>
-                                <server_type>sandbox</server_type>
-                            </depends>
-                        </frequency_sandbox>
-                        <last_update_production translate="label">
-                            <label>Last Update</label>
-                            <frontend_type>label</frontend_type>
-                            <frontend_model>neklo_monitor_adminhtml/system_config_frontend_label</frontend_model>
-                            <sort_order>50</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>0</show_in_website>
-                            <show_in_store>0</show_in_store>
-                            <depends>
-                                <server_type>production</server_type>
-                            </depends>
-                        </last_update_production>
-                        <last_update_sandbox translate="label">
-                            <label>Last Update</label>
-                            <frontend_type>label</frontend_type>
-                            <frontend_model>neklo_monitor_adminhtml/system_config_frontend_label</frontend_model>
-                            <sort_order>50</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>0</show_in_website>
-                            <show_in_store>0</show_in_store>
-                            <depends>
-                                <server_type>sandbox</server_type>
-                            </depends>
-                        </last_update_sandbox-->
+                        </connect>
                     </fields>
                 </gateway>
+
+                <account translate="label">
+                    <label>Account List</label>
+                    <frontend_type>text</frontend_type>
+                    <frontend_model>neklo_monitor_adminhtml/system_config_fieldset_account</frontend_model>
+                    <sort_order>30</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>0</show_in_website>
+                    <show_in_store>0</show_in_store>
+                    <comment><![CDATA[Fill in the information for the Magento Store Monitoring accounts allowed to access your store’s data.]]></comment>
+                </account>
+
                 <mobileapp translate="label">
                     <label>Mobile Application</label>
                     <comment><![CDATA[
-To receive data from the module you need to install a free mobile application.
-As soon as you have done this, please, use the token given above to link your store to the app and ensure that Magento Store Monitoring is enabled.
-From now on you will get detailed real-time information on your store's performance, orders, customers and inventory right on the screen of your smartphone.
-Enjoy.
-<table style="margin-top: 50px" cellspacing="0" cellpadding="0">
-<tr>
-<td><strong>Download from iTunes</strong></td>
-<td style="padding:0 15px 50px"><img width="140" height="140" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIwAAACMCAIAAAAhotZpAAAABmJLR0QA/wD/AP+gvaeTAAADnElEQVR4nO2dzY7kMAgGN6t5/1fuvXoOaEFAkmpV3Sbjv+5PBGFj+vp8Pn/k3fx9egHyfxQJgCIB+Dn/uK5rfIKMzzvnPdtXn2eIPmM0Tqb99vemJQFQJACKBOAn+kcnfore0VVfErWp+q1M3846o/GrROvRkgAoEgBFAhD6pJNMHDDlY6J5O77kfJ7pm3lejf8iMuNoSQAUCYAiAUj5pCk67+ip/b1MDNSJkzbQkgAoEgBFAnCrT6r6hg3/FI3TWec2WhIARQKgSABSPmnqXZyJkzJ+oppf0Nln63z2qe9NSwKgSAAUCUDokzZyyU6m4pup9hv7flNoSQAUCYAiAbie2o+aOlvKtN9Yw51oSQAUCYAiARi7n9S5r7ORn131W9X13xl7aUkAFAmAIgG4OntTG/eEpp5vMJWnV43PtCQAigRAkQD8ipOmzkimfEMnprkzr6GTc2Gc9CUoEgBFAhDGSScbeXedmkOd9m+451T9XFoSAEUCoEgAUnt3d54zbcRAU3UiIjZy00+0JACKBECRALR80kaskxkns4bts6UMU/uHWhIARQKgSABS50kR2/kOmbW94TwpM36nHqCWBECRACgSgHIdh40z/I5vuDPvLsNGPT0tCYAiAVAkAK1c8A5P5SBs521HfTtttCQAigRAkQCUa7Bu3D3q9O3UWq2S+f2LTF2+qn/SkgAoEgBFApDKBT95Q/yU6XtnrnYG6zh8OYoEQJEAlPPupt77qcW9rEbqU7kPWhIARQKgSABacdLGvaXtHPQNvzWVN2icBEaRACgSgPA8aeoOaYfq+U31PGn7HGiqjZYEQJEAKBKAVi541WdUx4/anEzVTZiad2NvUEsCoEgAFAlAORf8V+eX1WjYriGUmSuatzOOlgRAkQAoEoByLngnPujkOFTHmYrVMrFghs6atSQAigRAkQCUawttxEPR+HfeT5qqA1SdN4OWBECRACgSgLHfmY3YyJ+Onk/lF2SeT41/4nkSGEUCoEgAUnl3VTrnPRt1UatnSE/lGUZoSQAUCYAiAUidJz2V2xb1nao90cmJ2LibFaElAVAkAIoEoJzjMEUnp267vmrGh3V8pHUcvhBFAqBIAB7zSVXfM3UfaKp+xJQvtI7Dl6BIABQJQPnO7AYbtVMz7aM20dqqY3bGP9GSACgSAEUCEPqkjRy8k6kznqhvtX00V+Z5FeuCfyGKBECRAFzbMZD00ZIAKBIARQLwD7iyGUSwc3hwAAAAAElFTkSuQmCC" /></td>
-<td><a href="https://itunes.apple.com/us/app/magento-store-monitoring/id1108796762">https://itunes.apple.com/us/app/magento-store-monitoring/id1108796762</a></td>
-</tr>
-<tr>
-<td><strong>Download from Google&nbsp;Play</strong></td>
-<td style="padding:0 15px"><img width="140" height="140" style="opacity:0.10" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJEAAACRCAIAAABMus10AAAABmJLR0QA/wD/AP+gvaeTAAADHUlEQVR4nO2dy24kMQgAd1b5/1+e3DnQQTbY1aq6RdPPlJARtunPvym+3+/fD/58Psm54dfSjfJzS5SeaiP/Z24jG9EZD53x0BmPn/B3KVPIycfkPMvIyQf/Ui6w8X37rhzeyDjjoTMeOuOhMx4xBwn0jef5waVaRp6SbKy/rLDxP2mc8dAZD53x0BmPhxykj41jcqngsvFGfTWUHOOMh8546IyHzngcy0FWihcr5/bVUMYwznjojIfOeOiMx0MO0jcIl8oTGw9eeaNT5waMMx4646EzHjrjEXOQsc0dgVI9ou/XnJWCy0aMMx4646EzHjrj8blkumFsecgl77uCccZDZzx0xkNnPH7u7JdRutTKjfrKIn2/Gmc8dMZDZzx0xmNnHWRjY7G+HmWBjZnCGMYZD53x0BkPnfHYOYr2dTPtW3nRV7zIbxQova9xxkNnPHTGQ2c8Yh1kbH4hMNZJ7NSa1I37iY0zHjrjoTMeOuPxkIMETk1V3Dmts7GZiHWQl6MzHjrjoTMeD2nC2A6UO8sTp8ifyjjjoTMeOuOhMx61OkjgzgE8p28dytiuX+OMh8546IyHzngsfTd3Y/Eif4xTsx75uSv3Dbge5OXojIfOeOiMx9JcTLxW29qKsdanOZfMEBlnPHTGQ2c8dMYjjsB9CzrHWpadaqE+NjNlnPHQGQ+d8dAZj4ccpHatfVnGnfftmxIKuC/mbeiMh8546IzHUh2kdqe2L8L0rRy9pNBjr3Y8OuOhMx4647FUBxmb1yjd984so3Rl6yBvQ2c8dMZDZzyOfTf3zrLI2OLXlYc0znjojIfOeOiMx1xHj1PrWXP62qP0tao3znjojIfOeOiMx1J/kJyNo+7KuWOd08b+dcYZD53x0BkPnfGIOUjgVPuMvpUXpcfIDx7bbRwwznjojIfOeOiMx0MOcgljH5rry7k2PoZxxkNnPHTGQ2c8GDlIIB+xS3lEX/v1nFL+4ppUPDrjoTMeOuPxkIOc2jXTtze3b2/L2OySccZDZzx0xkNnPGIOgvj2baCUC4xtxi1hf5CXozMeOuOhMx6/Z8gFM4UY+noAAAAASUVORK5CYII=" /></td>
-<td><i>coming soon...</i></td>
-</tr>
-<tr>
-<td style="padding:50px 0 0"><strong>See installation FAQ</strong></td>
-<td colspan="2" style="padding:50px 15px 0"><a href="http://store.neklo.com/magento-monitoring/">http://store.neklo.com/magento-monitoring/</a></td>
-</tr>
+<table cellspacing="0" cellpadding="0">
+    <tr>
+        <td style=""><strong>See installation FAQ</strong></td>
+        <td colspan="2" style="padding:0px 15px 0"><a href="http://store.neklo.com/magento-monitoring/" target="_blank">http://store.neklo.com/magento-monitoring/</a></td>
+    </tr>
+    <tr>
+        <td colspan="3" style="padding:20px 0;width:360px;">
+            To receive data from the module, you need to install a free mobile application and associate it with the module.
+            For detailed instructions how to do this, see Installation FAQ.
+            From now on you will get detailed real-time information on your store's performance, orders, customers and inventory right on the screen of your smartphone.
+            Enjoy.
+        </td>
+    </tr>
+    <tr>
+        <td><strong>Download from iTunes</strong></td>
+        <td style="padding:0 15px 50px"><img width="140" height="140" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIwAAACMCAIAAAAhotZpAAAABmJLR0QA/wD/AP+gvaeTAAADnElEQVR4nO2dzY7kMAgGN6t5/1fuvXoOaEFAkmpV3Sbjv+5PBGFj+vp8Pn/k3fx9egHyfxQJgCIB+Dn/uK5rfIKMzzvnPdtXn2eIPmM0Tqb99vemJQFQJACKBOAn+kcnfore0VVfErWp+q1M3846o/GrROvRkgAoEgBFAhD6pJNMHDDlY6J5O77kfJ7pm3lejf8iMuNoSQAUCYAiAUj5pCk67+ip/b1MDNSJkzbQkgAoEgBFAnCrT6r6hg3/FI3TWec2WhIARQKgSABSPmnqXZyJkzJ+oppf0Nln63z2qe9NSwKgSAAUCUDokzZyyU6m4pup9hv7flNoSQAUCYAiAbie2o+aOlvKtN9Yw51oSQAUCYAiARi7n9S5r7ORn131W9X13xl7aUkAFAmAIgG4OntTG/eEpp5vMJWnV43PtCQAigRAkQD8ipOmzkimfEMnprkzr6GTc2Gc9CUoEgBFAhDGSScbeXedmkOd9m+451T9XFoSAEUCoEgAUnt3d54zbcRAU3UiIjZy00+0JACKBECRALR80kaskxkns4bts6UMU/uHWhIARQKgSABS50kR2/kOmbW94TwpM36nHqCWBECRACgSgHIdh40z/I5vuDPvLsNGPT0tCYAiAVAkAK1c8A5P5SBs521HfTtttCQAigRAkQCUa7Bu3D3q9O3UWq2S+f2LTF2+qn/SkgAoEgBFApDKBT95Q/yU6XtnrnYG6zh8OYoEQJEAlPPupt77qcW9rEbqU7kPWhIARQKgSABacdLGvaXtHPQNvzWVN2icBEaRACgSgPA8aeoOaYfq+U31PGn7HGiqjZYEQJEAKBKAVi541WdUx4/anEzVTZiad2NvUEsCoEgAFAlAORf8V+eX1WjYriGUmSuatzOOlgRAkQAoEoByLngnPujkOFTHmYrVMrFghs6atSQAigRAkQCUawttxEPR+HfeT5qqA1SdN4OWBECRACgSgLHfmY3YyJ+Onk/lF2SeT41/4nkSGEUCoEgAUnl3VTrnPRt1UatnSE/lGUZoSQAUCYAiAUidJz2V2xb1nao90cmJ2LibFaElAVAkAIoEoJzjMEUnp267vmrGh3V8pHUcvhBFAqBIAB7zSVXfM3UfaKp+xJQvtI7Dl6BIABQJQPnO7AYbtVMz7aM20dqqY3bGP9GSACgSAEUCEPqkjRy8k6kznqhvtX00V+Z5FeuCfyGKBECRAFzbMZD00ZIAKBIARQLwD7iyGUSwc3hwAAAAAElFTkSuQmCC" /></td>
+        <td><a href="https://itunes.apple.com/us/app/magento-store-monitoring/id1108796762">https://itunes.apple.com/us/app/magento-store-monitoring/id1108796762</a></td>
+    </tr>
+    <tr>
+        <td><strong>Download from Google&nbsp;Play</strong></td>
+        <td style="padding:0 15px"><img width="140" height="140" style="opacity:0.10" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJEAAACRCAIAAABMus10AAAABmJLR0QA/wD/AP+gvaeTAAADHUlEQVR4nO2dy24kMQgAd1b5/1+e3DnQQTbY1aq6RdPPlJARtunPvym+3+/fD/58Psm54dfSjfJzS5SeaiP/Z24jG9EZD53x0BmPn/B3KVPIycfkPMvIyQf/Ui6w8X37rhzeyDjjoTMeOuOhMx4xBwn0jef5waVaRp6SbKy/rLDxP2mc8dAZD53x0BmPhxykj41jcqngsvFGfTWUHOOMh8546IyHzngcy0FWihcr5/bVUMYwznjojIfOeOiMx0MO0jcIl8oTGw9eeaNT5waMMx4646EzHjrjEXOQsc0dgVI9ou/XnJWCy0aMMx4646EzHjrj8blkumFsecgl77uCccZDZzx0xkNnPH7u7JdRutTKjfrKIn2/Gmc8dMZDZzx0xmNnHWRjY7G+HmWBjZnCGMYZD53x0BkPnfHYOYr2dTPtW3nRV7zIbxQova9xxkNnPHTGQ2c8Yh1kbH4hMNZJ7NSa1I37iY0zHjrjoTMeOuPxkIMETk1V3Dmts7GZiHWQl6MzHjrjoTMeD2nC2A6UO8sTp8ifyjjjoTMeOuOhMx61OkjgzgE8p28dytiuX+OMh8546IyHzngsfTd3Y/Eif4xTsx75uSv3Dbge5OXojIfOeOiMx9JcTLxW29qKsdanOZfMEBlnPHTGQ2c8dMYjjsB9CzrHWpadaqE+NjNlnPHQGQ+d8dAZj4ccpHatfVnGnfftmxIKuC/mbeiMh8546IzHUh2kdqe2L8L0rRy9pNBjr3Y8OuOhMx4647FUBxmb1yjd984so3Rl6yBvQ2c8dMZDZzyOfTf3zrLI2OLXlYc0znjojIfOeOiMx1xHj1PrWXP62qP0tao3znjojIfOeOiMx1J/kJyNo+7KuWOd08b+dcYZD53x0BkPnfGIOUjgVPuMvpUXpcfIDx7bbRwwznjojIfOeOiMx0MOcgljH5rry7k2PoZxxkNnPHTGQ2c8GDlIIB+xS3lEX/v1nFL+4ppUPDrjoTMeOuPxkIOc2jXTtze3b2/L2OySccZDZzx0xkNnPGIOgvj2baCUC4xtxi1hf5CXozMeOuOhMx6/Z8gFM4UY+noAAAAASUVORK5CYII=" /></td>
+        <td><i>coming soon...</i></td>
+    </tr>
 </table>
                     ]]></comment>
                     <frontend_type>text</frontend_type>
-                    <sort_order>50</sort_order>
+                    <sort_order>40</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>0</show_in_website>
                     <show_in_store>0</show_in_store>

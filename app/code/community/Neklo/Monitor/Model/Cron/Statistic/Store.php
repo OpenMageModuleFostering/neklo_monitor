@@ -1,6 +1,6 @@
 <?php
 
-class Neklo_Monitor_Model_Cron_Store extends Neklo_Monitor_Model_Cron_Abstract
+class Neklo_Monitor_Model_Cron_Statistic_Store extends Neklo_Monitor_Model_Cron_Statistic
 {
     protected $_name = 'neklo_monitor_cron_store_lock_id';
 
@@ -11,7 +11,7 @@ class Neklo_Monitor_Model_Cron_Store extends Neklo_Monitor_Model_Cron_Abstract
             $gatewayConfig = $this->_getConnector()->sendInfo('store', $storeData);
             $this->_getConfig()->updateGatewayConfig($gatewayConfig);
         } catch (Exception $e) {
-//            Mage::logException($e);
+            Mage::logException($e);
             $msg = $schedule->getMessages();
             if ($msg) {
                 $msg .= "\n";
@@ -40,18 +40,4 @@ class Neklo_Monitor_Model_Cron_Store extends Neklo_Monitor_Model_Cron_Abstract
         }
         return $info;
     }
-
-    public function collect()
-    {
-        if (!$this->_getConfig()->isEnabled()) {
-            return;
-        }
-
-        /** @var Neklo_Monitor_Model_Minfo_Parser $parser */
-        $parser = Mage::getModel('neklo_monitor/minfo_parser');
-        $parser->generateReportStats();
-        $parser->generateLogStats('system');
-        $parser->generateLogStats('exception');
-    }
-
 }

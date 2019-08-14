@@ -14,6 +14,8 @@ class Neklo_Monitor_Helper_Config extends Mage_Core_Helper_Data
     const GATEWAY_FREQUENCY = 'neklo_monitor/gateway/plan_frequency';
     const GATEWAY_LAST_UPDATE = 'neklo_monitor/gateway/last_update';
 
+    const CRON_REPORT_COLLECTED_AT = 'neklo_monitor/cron/report_collected_at';
+
     protected $_gatewayConfig = array(
         'type'      => self::GATEWAY_PLAN,
         'frequency' => self::GATEWAY_FREQUENCY,
@@ -21,7 +23,35 @@ class Neklo_Monitor_Helper_Config extends Mage_Core_Helper_Data
 
     public function getModuleVersion()
     {
-        return (string) Mage::getConfig()->getNode('modules/Neklo_Monitor/version');
+        return (string)Mage::getConfig()->getNode('modules/Neklo_Monitor/version');
+    }
+
+    public function getLastVersion()
+    {
+        $feed = Mage::helper('neklo_monitor/feed')->getFeed();
+        $extensionKey = strtolower($this->_getModuleName());
+        if (!array_key_exists($extensionKey, $feed)) {
+            return null;
+        }
+        if (!is_array($feed[$extensionKey]) || !array_key_exists('version', $feed[$extensionKey])) {
+            return null;
+        }
+        return $feed[$extensionKey]['version'];
+    }
+
+    public function isUpdateAvailable()
+    {
+        return version_compare($this->getLastVersion(), $this->getModuleVersion(), 'g');
+    }
+
+    public function getGatewayApiVersion()
+    {
+        return (string)Mage::getConfig()->getNode('modules/Neklo_Monitor/api_version');
+    }
+
+    public function getPlatform()
+    {
+        return (string)Mage::getConfig()->getNode('modules/Neklo_Monitor/platform');
     }
 
     public function isEnabled()
@@ -78,7 +108,7 @@ class Neklo_Monitor_Helper_Config extends Mage_Core_Helper_Data
     public function getGatewayServerUri()
     {
         $serverType = $this->getGatewayServerType();
-        return Mage::getModel('neklo_monitor/system_config_source_server_type')->getServerUri($serverType);
+        return Mage::getModel('neklo_monitor/source_system_config_server_type')->getServerUri($serverType);
     }
 
     public function getGatewaySid()
@@ -100,6 +130,16 @@ class Neklo_Monitor_Helper_Config extends Mage_Core_Helper_Data
         $serverType = $this->getGatewayServerType();
         $encryptedSid = Mage::helper('core')->encrypt($sid);
         $this->_saveConfig(self::GATEWAY_SID . '_' . $serverType, $encryptedSid);
+        $this->_updateTokenCreatedAt(0); // invalidate Token
+
+        // reinit configuration cache
+        Mage::getConfig()->reinit();
+    }
+
+    public function disconnect()
+    {
+        $serverType = $this->getGatewayServerType();
+        $this->_saveConfig(self::GATEWAY_SID . '_' . $serverType, null);
         $this->_updateTokenCreatedAt(0); // invalidate Token
 
         // reinit configuration cache
@@ -140,6 +180,29 @@ class Neklo_Monitor_Helper_Config extends Mage_Core_Helper_Data
         return Mage::getStoreConfig(self::GATEWAY_LAST_UPDATE . '_' . $serverType);
     }
 
+    public function getCronReportCollectedAt()
+    {
+        return (int)Mage::getStoreConfig(self::CRON_REPORT_COLLECTED_AT);
+    }
+
+    public function updateCronReportCollectedAt()
+    {
+        $this->_saveConfig(self::CRON_REPORT_COLLECTED_AT, time());
+    }
+
+    public function getExtensionUrl()
+    {
+        $feed = Mage::helper('neklo_monitor/feed')->getFeed();
+        $extensionKey = strtolower($this->_getModuleName());
+        if (!array_key_exists($extensionKey, $feed)) {
+            return null;
+        }
+        if (!is_array($feed[$extensionKey]) || !array_key_exists('url', $feed[$extensionKey])) {
+            return null;
+        }
+        return $feed[$extensionKey]['url'];
+    }
+
     protected function _updateGatewayLastUpdate()
     {
         $serverType = $this->getGatewayServerType();
@@ -151,5 +214,4 @@ class Neklo_Monitor_Helper_Config extends Mage_Core_Helper_Data
         $configModel = Mage::getModel('core/config');
         $configModel->saveConfig($path, $value, $scope, $scopeId);
     }
-
 }

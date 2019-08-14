@@ -3,7 +3,6 @@
 class Neklo_Monitor_Controller_Abstract extends Mage_Core_Controller_Front_Action
 {
     const PAGE_SIZE = 50;
-    const API_VERSION_HEADER = 'X-API-Version';
 
     // some controllers (auth) should skip isConnected checking @see preDispatch
     protected $_allowConnectedOnly = true;
@@ -52,7 +51,10 @@ class Neklo_Monitor_Controller_Abstract extends Mage_Core_Controller_Front_Actio
 
     public function postDispatch()
     {
-        $this->getResponse()->setHeader(self::API_VERSION_HEADER, $this->_getConfigHelper()->getModuleVersion());
+        $this->getResponse()->setHeader(
+            Neklo_Monitor_Helper_Header::GATEWAY_API_VERSION_HEADER,
+            $this->_getConfigHelper()->getGatewayApiVersion()
+        );
         return parent::postDispatch();
     }
 
@@ -77,5 +79,4 @@ class Neklo_Monitor_Controller_Abstract extends Mage_Core_Controller_Front_Actio
     {
         return Mage::helper('neklo_monitor/config');
     }
-
 }

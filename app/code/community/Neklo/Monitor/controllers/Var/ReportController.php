@@ -4,8 +4,8 @@ class Neklo_Monitor_Var_ReportController extends Neklo_Monitor_Controller_Abstra
 {
     public function listAction()
     {
-        /* @var $collection Neklo_Monitor_Model_Resource_Minfo_Report_Collection */
-        $collection = Mage::getResourceModel('neklo_monitor/minfo_report_collection');
+        /* @var $collection Neklo_Monitor_Model_Resource_Report_Collection */
+        $collection = Mage::getResourceModel('neklo_monitor/report_collection');
 
         // for pages lists - load next page rows despite newly inserted rows
         $queryTimestamp = (int) $this->_getRequestHelper()->getParam('query_timestamp', 0);
@@ -22,7 +22,7 @@ class Neklo_Monitor_Var_ReportController extends Neklo_Monitor_Controller_Abstra
 
         $list = array('result' => array());
         foreach ($collection as $report) {
-            /** @var Neklo_Monitor_Model_Minfo_Report $report */
+            /* @var Neklo_Monitor_Model_Report $report */
             $list['result'][] = array(
                 'hash'       => $report->getData('hash'),
                 'message'    => $report->getData('message'),
@@ -36,8 +36,8 @@ class Neklo_Monitor_Var_ReportController extends Neklo_Monitor_Controller_Abstra
         // get new entities count
 
         if ($queryTimestamp > 0) {
-            /* @var $collection Neklo_Monitor_Model_Resource_Minfo_Report_Collection */
-            $collection = Mage::getResourceModel('neklo_monitor/minfo_report_collection');
+            /* @var $collection Neklo_Monitor_Model_Resource_Report_Collection */
+            $collection = Mage::getResourceModel('neklo_monitor/report_collection');
             $collection->addFieldToFilter('last_time', array('gteq' => $queryTimestamp));
             $list['new_entities_count'] = $collection->getSize();
 //            $list['sql2'] = $collection->getSelectCountSql()->__toString();
@@ -50,8 +50,8 @@ class Neklo_Monitor_Var_ReportController extends Neklo_Monitor_Controller_Abstra
     {
         $hash = $this->_getRequestHelper()->getParam('hash', '');
 
-        /* @var $report Neklo_Monitor_Model_Minfo_Report */
-        $report = Mage::getModel('neklo_monitor/minfo_report');
+        /* @var $report Neklo_Monitor_Model_Report */
+        $report = Mage::getModel('neklo_monitor/report');
         $report->load($hash, 'hash');
 
         // for pages lists - load next page rows despite newly inserted rows

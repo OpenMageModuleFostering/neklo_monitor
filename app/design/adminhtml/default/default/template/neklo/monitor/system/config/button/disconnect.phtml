@@ -1,0 +1,22 @@
+<?php /* @var $this Neklo_Monitor_Block_Adminhtml_System_Config_Frontend_Button_Disconnect */ ?>
+<?php echo $this->getButtonHtml(); ?>
+<script type="text/javascript">
+    var button = $('<?php echo $this->getButton()->getId(); ?>');
+    if (button) {
+        Event.observe(button, 'click', function(e) {
+            Event.stop(e);
+            new Ajax.Request(
+                '<?php echo $this->getDisconnectUrl(); ?>',
+                {
+                    method: 'POST',
+                    onSuccess: function(transport) {
+                        location.reload();
+                    },
+                    onFailure: function () {
+                        location.reload();
+                    }
+                }
+            );
+        });
+    }
+</script>

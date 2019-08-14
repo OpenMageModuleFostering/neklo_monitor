@@ -4,8 +4,8 @@ class Neklo_Monitor_Var_LogController extends Neklo_Monitor_Controller_Abstract
 {
     public function listAction()
     {
-        /* @var $collection Neklo_Monitor_Model_Resource_Minfo_Log_Collection */
-        $collection = Mage::getResourceModel('neklo_monitor/minfo_log_collection');
+        /* @var $collection Neklo_Monitor_Model_Resource_Log_Collection */
+        $collection = Mage::getResourceModel('neklo_monitor/log_collection');
 
         // for pages lists - load next page rows despite newly inserted rows
         $queryTimestamp = (int) $this->_getRequestHelper()->getParam('query_timestamp', 0);
@@ -22,13 +22,14 @@ class Neklo_Monitor_Var_LogController extends Neklo_Monitor_Controller_Abstract
 
         $list = array('result' => array());
         foreach ($collection as $log) {
-            /** @var Neklo_Monitor_Model_Minfo_Log $log */
+            /* @var Neklo_Monitor_Model_Log $log */
+            $lastTime = $log->getData('last_time');
             $list['result'][] = array(
                 'type'       => $log->getData('type'),
                 'hash'       => $log->getData('hash'),
                 'message'    => $log->getData('message'),
                 'qty'        => (int)$log->getData('qty'),
-                'last_time'  => (int)$log->getData('last_time'),
+                'last_time'  => empty($lastTime) ? (int)$log->getData('first_time') : (int)$log->getData('last_time'),
                 'first_time' => (int)$log->getData('first_time'),
             );
         }
@@ -37,8 +38,8 @@ class Neklo_Monitor_Var_LogController extends Neklo_Monitor_Controller_Abstract
         // get new entities count
 
         if ($queryTimestamp > 0) {
-            /* @var $collection Neklo_Monitor_Model_Resource_Minfo_Log_Collection */
-            $collection = Mage::getResourceModel('neklo_monitor/minfo_log_collection');
+            /* @var $collection Neklo_Monitor_Model_Resource_Log_Collection */
+            $collection = Mage::getResourceModel('neklo_monitor/log_collection');
             $collection->addFieldToFilter('last_time', array('gteq' => $queryTimestamp));
             $list['new_entities_count'] = $collection->getSize();
 //            $list['sql2'] = $collection->getSelectCountSql()->__toString();
@@ -51,9 +52,9 @@ class Neklo_Monitor_Var_LogController extends Neklo_Monitor_Controller_Abstract
     {
         $hash = $this->_getRequestHelper()->getParam('hash', '');
 
-        /* @var $log Neklo_Monitor_Model_Minfo_Log */
-        $log = Mage::getModel('neklo_monitor/minfo_log');
-        $log->load($hash, 'hash');
+        /* @var $log Neklo_Monitor_Model_Log */
+        $log = Mage::getModel('neklo_monitor/log');
+        $log->loadByHash($hash);
 
         // for pages lists - load next page rows despite newly inserted rows
         $filter = array();
@@ -64,12 +65,12 @@ class Neklo_Monitor_Var_LogController extends Neklo_Monitor_Controller_Abstract
 
         $offset = $this->_getRequestHelper()->getParam('offset', 0);
 
+        // TODO: check
         $collection = $log->getTimesCollection($offset, self::PAGE_SIZE, $filter);
 
         $list = array('result' => array());
-        Mage::log($collection->getItems());
         foreach ($collection as $_logTime) {
-            /** @var Varien_Object $_logTime */
+            /* @var Varien_Object $_logTime */
             $list['result'][] = (int)$_logTime->getData();
         }
 

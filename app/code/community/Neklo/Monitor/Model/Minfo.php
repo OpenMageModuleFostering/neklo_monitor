@@ -6,11 +6,19 @@ class Neklo_Monitor_Model_Minfo
 
     protected $_config = array(
         'magento' => array(
-            'var_log'         => true,
-            'var_report'      => true,
-            'customer_online' => true,
+            'customer_online'     => true,
             'products_outofstock' => true,
         ),
+        'var'     => array(
+            'log_size'          => true,
+            'log_file_count'    => true,
+            'log_qty'           => true,
+            'log_qty_new'       => true,
+            'report_size'       => true,
+            'report_file_count' => true,
+            'report_qty'        => true,
+            'report_qty_new'    => true,
+        )
     );
 
     public function getInfo()
@@ -25,15 +33,45 @@ class Neklo_Monitor_Model_Minfo
 
         $timestamp = time();
         $fields = array(
-            'var_log'         => array(
-                'show'    => !empty($this->_config['magento']['var_log']),
+            'log_size'    => array(
+                'show'    => !empty($this->_config['var']['log_size']),
                 'default' => null,
-                'method'  => 'getVarLog',
+                'method'  => 'getLogSize',
             ),
-            'var_report'      => array(
-                'show'    => !empty($this->_config['magento']['var_report']),
+            'log_file_count'    => array(
+                'show'    => !empty($this->_config['var']['log_file_count']),
                 'default' => null,
-                'method'  => 'getVarReport',
+                'method'  => 'getLogFileCount',
+            ),
+            'log_qty'     => array(
+                'show'    => !empty($this->_config['var']['log_qty']),
+                'default' => null,
+                'method'  => 'getLogQty',
+            ),
+            'log_qty_new' => array(
+                'show'    => !empty($this->_config['var']['log_qty_new']),
+                'default' => null,
+                'method'  => 'getLogQtyNew',
+            ),
+            'report_size'      => array(
+                'show'    => !empty($this->_config['var']['report_size']),
+                'default' => null,
+                'method'  => 'getReportSize',
+            ),
+            'report_file_count'      => array(
+                'show'    => !empty($this->_config['var']['report_file_count']),
+                'default' => null,
+                'method'  => 'getReportFileCount',
+            ),
+            'report_qty'      => array(
+                'show'    => !empty($this->_config['var']['report_qty']),
+                'default' => null,
+                'method'  => 'getReportQty',
+            ),
+            'report_qty_new'      => array(
+                'show'    => !empty($this->_config['var']['report_qty_new']),
+                'default' => null,
+                'method'  => 'getReportQtyNew',
             ),
             'customer_online' => array(
                 'show'    => !empty($this->_config['magento']['customer_online']),

@@ -4,3 +4,31 @@
 .gateway_status.error {
     color:#FF0000;
 }
+
+.neklo-monitor-message-conteiner {
+    text-align: center;
+}
+
+.neklo-monitor-account-message {
+    font-weight: bold;
+}
+.neklo-monitor-account-message.success {
+    color:#008000;
+}
+.neklo-monitor-account-message.error {
+    color:#FF0000;
+}
+
+.account-actions {
+    text-align: right;
+}
+
+.action-button {
+    display: inline-block;
+}
+
+.input-disabled {
+    border: none;
+    background-color: #FFFFFF;
+    color: #000000;
+}
