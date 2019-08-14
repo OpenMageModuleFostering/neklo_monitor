@@ -46,7 +46,14 @@ class Neklo_Monitor_CustomerController extends Neklo_Monitor_Controller_Abstract
             ->toOptionHash()
         ;
 
-        $customerIds = $collection->getAllIds();
+        $customerIds = $collection->getAllIds(self::PAGE_SIZE, $offset);
+        /*
+        $customerIds = array(); // // getAllIds without parameters resets limits and pages
+        foreach ($collection as $customer) {
+            $customerIds[] = $customer->getData('entity_id');
+        }
+        */
+
         /* @var $orders Mage_Sales_Model_Mysql4_Order_Collection */
         $orders = Mage::getResourceModel('sales/order_collection');
         $orders->addFieldToFilter('customer_id', array('in' => $customerIds));

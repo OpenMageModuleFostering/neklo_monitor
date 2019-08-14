@@ -70,4 +70,27 @@ class Neklo_Monitor_InfoController extends Neklo_Monitor_Controller_Abstract
 
         $this->_jsonResult($result);
     }
+
+    public function attrsetlistAction()
+    {
+        $result = array('result' => array());
+
+        /** @var Mage_Catalog_Model_Resource_Eav_Mysql4_Product $resrc */
+        $resrc = Mage::getResourceModel('catalog/product');
+        /** @var Mage_Eav_Model_Mysql4_Entity_Attribute_Set_Collection $attributeSetCollection */
+        $attributeSetCollection = Mage::getResourceModel('eav/entity_attribute_set_collection');
+        $attributeSetCollection
+            ->setEntityTypeFilter($resrc->getTypeId())
+            ->load();
+        foreach ($attributeSetCollection as $_set) {
+            /** @var Mage_Eav_Model_Entity_Attribute_Set $_set */
+            $result['result'][] = array(
+                'id' => $_set->getId(),
+                'label' => $_set->getAttributeSetName(),
+            );
+        }
+
+        $this->_jsonResult($result);
+    }
+
 }

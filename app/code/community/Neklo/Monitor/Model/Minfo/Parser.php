@@ -129,6 +129,11 @@ class Neklo_Monitor_Model_Minfo_Parser
             $collection->addStoreFilter($storeId);
         }
 
+        $collection->addAttributeToFilter(
+            'status',
+            array('in' => Mage::getSingleton('catalog/product_status')->getSaleableStatusIds())
+        );
+
         // copy-pasted from CE 1.4 Layer Model
         /*
         $attributes = Mage::getSingleton('catalog/config')->getProductAttributes();

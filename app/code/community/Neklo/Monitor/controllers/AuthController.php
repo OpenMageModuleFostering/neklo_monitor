@@ -16,7 +16,9 @@ class Neklo_Monitor_AuthController extends Neklo_Monitor_Controller_Abstract
     {
         if (!$this->_getConfigHelper()->isConnected()) {
             $sid = $this->_getRequestHelper()->getParam('sid', null);
-            $this->_getConfigHelper()->connect($sid);
+            if ($sid !== null) {
+                $this->_getConfigHelper()->connect($sid);
+            }
         }
 
         // Return store icon and store name

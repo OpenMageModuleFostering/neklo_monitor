@@ -52,6 +52,7 @@ class Neklo_Monitor_Helper_Request
         ),
 
         'info/storeviewlist'    => 'common//common',
+        'info/attrsetlist'      => 'common//common',
         'info/total' => array( // common//common + store + from
             'sid',
             'device_id',
@@ -79,6 +80,7 @@ class Neklo_Monitor_Helper_Request
         'customer/list'          => 'dashboard//common',
         'customer/online'        => 'dashboard//common',
 
+        'config/alertsave'       => 'dashboard//common',
         'product/outofstock'     => 'dashboard//common',
         'order/list'             => 'dashboard//common',
 

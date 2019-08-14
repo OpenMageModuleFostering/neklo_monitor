@@ -19,6 +19,11 @@ class Neklo_Monitor_Helper_Config extends Mage_Core_Helper_Data
         'frequency' => self::GATEWAY_FREQUENCY,
     );
 
+    public function getModuleVersion()
+    {
+        return (string) Mage::getConfig()->getNode('modules/Neklo_Monitor/version');
+    }
+
     public function isEnabled()
     {
         return Mage::getStoreConfigFlag(self::GENERAL_IS_ENABLED);
@@ -111,6 +116,8 @@ class Neklo_Monitor_Helper_Config extends Mage_Core_Helper_Data
             $this->_saveConfig($configPath . '_' . $serverType, $config[$field]);
         }
 
+        $this->_updateGatewayLastUpdate();
+
         // reinit configuration cache
         Mage::getConfig()->reinit();
     }
@@ -133,13 +140,10 @@ class Neklo_Monitor_Helper_Config extends Mage_Core_Helper_Data
         return Mage::getStoreConfig(self::GATEWAY_LAST_UPDATE . '_' . $serverType);
     }
 
-    public function updateGatewayLastUpdate()
+    protected function _updateGatewayLastUpdate()
     {
         $serverType = $this->getGatewayServerType();
         $this->_saveConfig(self::GATEWAY_LAST_UPDATE . '_' . $serverType, time());
-
-        // reinit configuration cache
-        Mage::getConfig()->reinit();
     }
 
     protected function _saveConfig($path, $value, $scope = 'default', $scopeId = 0)
@@ -147,4 +151,35 @@ class Neklo_Monitor_Helper_Config extends Mage_Core_Helper_Data
         $configModel = Mage::getModel('core/config');
         $configModel->saveConfig($path, $value, $scope, $scopeId);
     }
+
+
+
+
+
+    public function getAlertOutofstockEnabled()
+    {
+        $serverType = $this->getGatewayServerType();
+        return Mage::getStoreConfigFlag(self::ALERT_INVENTORY_OUTOFSTOCK_IS_ENABLED . '_' . $serverType);
+    }
+
+
+    public function getAlertLowstockEnabled()
+    {
+        $serverType = $this->getGatewayServerType();
+        return Mage::getStoreConfigFlag(self::ALERT_INVENTORY_LOWSTOCK_IS_ENABLED . '_' . $serverType);
+    }
+
+    public function getAlertLowstockConfig()
+    {
+        $serverType = $this->getGatewayServerType();
+        $data = Mage::getStoreConfig(self::ALERT_INVENTORY_LOWSTOCK_ATTRSETS . '_' . $serverType);
+        if (!$data) {
+            return array();
+        }
+
+        return Mage::helper('core')->jsonDecode($data);
+    }
+
+
+
 }

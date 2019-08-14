@@ -4,11 +4,11 @@ class Neklo_Monitor_Model_System_Config_Source_Server_Type
 {
     const PRODUCTION_CODE = 'production';
     const PRODUCTION_LABEL = 'Production';
-    const PRODUCTION_URL = 'http://magento1.m1stats.neklodev.com/';
+    const PRODUCTION_URL = 'https://magento1-m1stats.neklodev.com/';
 
     const SANDBOX_CODE = 'sandbox';
     const SANDBOX_LABEL = 'Sandbox';
-    const SANDBOX_URL = 'http://magento1.m1stats.neklodev.com/';
+    const SANDBOX_URL = 'https://magento1-m1stats.neklodev.com/';
 
     public function toOptionArray()
     {

@@ -23,7 +23,7 @@ class Neklo_Monitor_Model_Linfo extends \Linfo\Linfo
             'webservice'       => false,
             'phpversion'       => false,
             'process_stats'    => false,
-            'hostname'         => false,
+            'hostname'         => true,
             'devices'          => false,
             'model'            => false,
             'numLoggedIn'      => false,
@@ -69,6 +69,7 @@ class Neklo_Monitor_Model_Linfo extends \Linfo\Linfo
 
         // OS
         'OS'                                 => 'os/name',
+        'HostName'                           => 'os/hostname',
         'Distro/name'                        => 'os/distro/name',
         'Distro/version'                     => 'os/distro/version',
 

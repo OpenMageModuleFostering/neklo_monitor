@@ -18,38 +18,45 @@ class Neklo_Monitor_Model_Gateway_Connector
                     array(
                         'maxredirects' => 0,
                         'timeout'      => 30,
+                        'verifypeer'   => 0,
                     )
                 )
-                ->setHeaders('SID', $this->_getConfig()->getGatewaySid())
             ;
         }
         return $this->_client;
     }
 
-    public function sendInfo($type, $info)
+    public function sendInfo($type, $info, $action = 'info')
     {
-        $requestData = array(
-            $type => $info,
-        );
+        if (is_null($type)) {
+            // multiple types, $info is an assoc array
+            $requestData = $info;
+        } else {
+            $requestData = array(
+                $type => $info,
+            );
+        }
+
+        $requestData['SID'] = $this->_getConfig()->getGatewaySid();
+
         $client = $this->getClient();
 
-        $client->setUri($this->_getUri());
+        $url = $this->_getUri($action);
+        $client->setUri($url);
+        $client->setRawData(Mage::helper('core')->jsonEncode($requestData));
 
-        $result = $client
-            ->setRawData(Mage::helper('core')->jsonEncode($requestData))
-            ->request()
-        ;
+        $result = $client->request();
 
         if (!$result->isSuccessful()) {
-            throw new Exception('Error sending request: '.$result->getMessage());
+            throw new Exception(Mage::helper('core')->__('Error sending request to %s: %s', $url, $result->getMessage()));
         }
 
         return Mage::helper('core')->jsonDecode($this->_getBody($result));
     }
 
-    protected function _getUri()
+    protected function _getUri($action)
     {
-        return $this->_getConfig()->getGatewayServerUri() . 'server/info';
+        return $this->_getConfig()->getGatewayServerUri() . 'server/' . $action;
     }
 
     /**

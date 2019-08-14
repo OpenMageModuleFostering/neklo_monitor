@@ -5,25 +5,43 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
     public function totalAction()
     {
         if (Mage::helper('core')->isModuleEnabled('Mage_Reports')) {
+
+            $isFilter = false;
+            $storeId = $this->_getRequestHelper()->getParam('store', null);
+            if ($storeId) {
+                $isFilter = true;
+            }
             /* @var $collection Mage_Reports_Model_Mysql4_Order_Collection */
             $collection = Mage::getResourceModel('reports/order_collection');
-            $collection->calculateSales(false);
-
-            $storeId = $this->_getRequestHelper()->getParam('store', null);
+            $collection->calculateSales($isFilter);
             if ($storeId) {
                 $collection->addFieldToFilter('store_id', (int)$storeId);
             }
 
             $collection->setPageSize(1);
-            $collection->setCurPage(1);
-
-            $collection->load();
             $salesStats = $collection->getFirstItem();
 
             $result = array(
                 'lifetime' => Mage::app()->getStore($storeId)->convertPrice($salesStats->getLifetime(), true, false),
                 'average'  => Mage::app()->getStore($storeId)->convertPrice($salesStats->getAverage(), true, false),
             );
+
+            foreach (array('24h', '1m') as $period) {
+                /* @var $collection Mage_Reports_Model_Mysql4_Order_Collection */
+                $collection = Mage::getResourceModel('reports/order_collection');
+                $collection
+                    ->addCreateAtPeriodFilter($period)
+                    ->calculateTotals($isFilter);
+                if ($storeId) {
+                    $collection->addFieldToFilter('store_id', (int)$storeId);
+                }
+
+                $collection->setPageSize(1);
+                $salesStats = $collection->getFirstItem();
+
+                $result['period'.$period] = Mage::app()->getStore($storeId)->convertPrice($salesStats->getRevenue(), true, false);
+            }
+
         } else {
             $result = array();
         }
@@ -57,33 +75,55 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
                 'small_image', // exists in collection when Flat Product is enabled
             )
         );
-        $skuList = array();
-        $thumbList = array();
-        $hlp = Mage::helper('catalog/image');
-        /** @var Mage_Catalog_Helper_Image $hlp */
+        $productsData = array();
         foreach ($productCollection as $row) {
             /** @var Mage_Catalog_Model_Product $row */
-            $skuList[$row->getId()] = $row->getSku();
-
-            $hlp->init($row, 'small_image');
-            $thumbList[$row->getId()] = array(
-                'image2xUrl' => $hlp->resize(224, 300)->__toString(),
-                'image3xUrl' => $hlp->resize(336, 450)->__toString(),
-            );
+            $productsData[$row->getId()] = $row->getData();
+            $productsData[$row->getId()] += Mage::helper('neklo_monitor')->resizeProductImage($row, 'small_image');
         }
 
-        $result = array();
+        $result = array('result' => array());
+        // the aggregated_yearly data fetched by $collection
         foreach ($collection as $row) {
-            if (isset($skuList[$row->getData('product_id')])) {
-                $result[] = array(
+            $_prodId = $row->getData('product_id');
+            if (isset($productsData[$_prodId])) {
+                $prodData = $productsData[$_prodId];
+                $reportItem = array(
                     'id'    => $row->getData('product_id'),
                     'name'  => $row->getData('product_name'),
                     'price' => Mage::app()->getStore($storeId)->convertPrice($row->getData('product_price'), true, false),
-                    'sku'   => $skuList[$row->getData('product_id')],
+                    'sku'   => $prodData['sku'],
                     'qty'   => (int)$row->getData('qty_ordered'),
-                    'image2xUrl' => $thumbList[$row->getData('product_id')]['image2xUrl'],
-                    'image3xUrl' => $thumbList[$row->getData('product_id')]['image3xUrl'],
+                    'image2xUrl' => $prodData['image2xUrl'],
+                    'image3xUrl' => $prodData['image3xUrl'],
                 );
+                // actually no images in simple products, and placeholders are generated into 'image2xUrl' 'image3xUrl'
+                if ('simple' == $prodData['type_id']
+                    && (empty($prodData['small_image']) || 'no_selection' == $prodData['small_image'])) {
+                    // search for any order item with this product during the period (a year based on report data)
+                    // to find a configurable parent, then load its product to get its image
+                    $orderItems = Mage::getResourceModel('sales/order_item_collection');
+                    $_from = $row['period'] . ' 00:00:00';
+                    $_toTs = strtotime($row['period']) + 365*24*60*60; // + 1 year, as the report is fetched from aggregated_yearly table
+                    $_to = date('Y-m-d', $_toTs) . ' 00:00:00';
+                    $orderItems
+                        ->addFieldToFilter('created_at', array('from' => $_from, 'to' => $_to))
+                        ->addFieldToFilter('product_id', $_prodId)
+                        ->addFieldToFilter('product_type', 'simple')
+                        ->addFieldToFilter('parent_item_id', array('gt' => 0))
+                        ->setOrder('created_at', 'desc')
+                        ->setPageSize(1);
+                    $orderItem = $orderItems->getFirstItem();
+
+                    $parentOrderItem = Mage::getModel('sales/order_item')->load($orderItem->getParentItemId());
+                    $parentProd = Mage::getModel('catalog/product')->load($parentOrderItem->getProductId());
+                    if ($orderItem && $orderItem->getId() && $parentOrderItem->getId() && $parentProd->getId()) {
+                        $parentImages = Mage::helper('neklo_monitor')->resizeProductImage($parentProd, 'small_image');
+                        $reportItem['image2xUrl'] = $parentImages['image2xUrl'];
+                        $reportItem['image3xUrl'] = $parentImages['image3xUrl'];
+                    }
+                }
+                $result['result'][] = $reportItem;
             }
         }
 
@@ -115,21 +155,18 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
         $collection->setCurPage(1);
         $collection->load();
 
-        $hlp = Mage::helper('catalog/image');
-        /** @var Mage_Catalog_Helper_Image $hlp */
-        $result = array();
+        $result = array('result' => array());
         foreach ($collection as $row) {
             /** @var Mage_Catalog_Model_Product $row */
-            $hlp->init($row, 'small_image');
-            $result[] = array(
+            $listItem = array(
                 'id'    => $row->getEntityId(),
                 'name'  => $row->getName(),
                 'price' => Mage::app()->getStore($storeId)->convertPrice($row->getPrice(), true, false),
                 'sku'   => $row->getSku(),
                 'views' => (int)$row->getData('views'),
-                'image2xUrl' => $hlp->resize(224, 300)->__toString(),
-                'image3xUrl' => $hlp->resize(336, 450)->__toString(),
             );
+            $listItem += Mage::helper('neklo_monitor')->resizeProductImage($row, 'small_image');
+            $result['result'][] = $listItem;
         }
 
         $this->_jsonResult($result);
@@ -157,7 +194,7 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
             ->toOptionHash()
         ;
 
-        $result = array();
+        $result = array('result' => array());
         foreach ($collection as $row) {
 
             if ((array_key_exists($row->getData('group_id'), $groupList))) {
@@ -177,7 +214,7 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
                 'order_count'          => (int)$row->getData('orders_count'),
             );
 
-            $result[] = $customerData;
+            $result['result'][] = $customerData;
         }
 
         $this->_jsonResult($result);
@@ -195,7 +232,7 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
         $storeFilter = 0;
         $storeId = $this->_getRequestHelper()->getParam('store', null);
         if ($storeId) {
-            $collection->addAttributeToFilter('store_id', $storeId);
+            $collection->addAttributeToFilter('main_table.store_id', $storeId);
             $storeFilter = 1;
         }
         $collection
@@ -218,7 +255,7 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
         $collection->setPageSize(5);
         $collection->setCurPage(1);
 
-        $result = array();
+        $result = array('result' => array());
         foreach ($collection as $row) {
             if ((array_key_exists($row->getData('customer_group_id'), $groupList))) {
                 $customerGroup = $groupList[$row->getData('customer_group_id')];
@@ -237,7 +274,7 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
                 'order_count'          => (int)$row->getData('orders_count'),
             );
 
-            $result[] = $customerData;
+            $result['result'][] = $customerData;
         }
 
         $this->_jsonResult($result);
@@ -271,7 +308,7 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
             ->toOptionHash()
         ;
 
-        $result = array();
+        $result = array('result' => array());
         foreach ($collection as $row) {
             if ((array_key_exists($row->getData('status'), $orderStatusList))) {
                 $orderStatus = $orderStatusList[$row->getData('status')];
@@ -300,7 +337,7 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
                 ),
             );
 
-            $result[] = $orderData;
+            $result['result'][] = $orderData;
         }
 
         $this->_jsonResult($result);
@@ -314,13 +351,13 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
 
         $storeId = $this->_getRequestHelper()->getParam('store', null);
         if ($storeId) {
-            $collection->addAttributeToFilter('store_id', $storeId);
+            $collection->addFieldToFilter('store_id', $storeId);
         }
 
         $collection->setPageSize(5);
         $collection->setCurPage(1);
 
-        $result = array();
+        $result = array('result' => array());
         foreach ($collection as $row) {
             $searchData = array(
                 'id'                => $row->getData('query_id'),
@@ -329,7 +366,7 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
                 'number_of_results' => $row->getData('num_results'),
                 'last_usage'        => Mage::helper('neklo_monitor/date')->convertToTimestamp($row->getData('updated_at')),
             );
-            $result[] = $searchData;
+            $result['result'][] = $searchData;
         }
 
         $this->_jsonResult($result);
@@ -342,11 +379,12 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
 
         $storeId = $this->_getRequestHelper()->getParam('store', '');
         $collection->setPopularQueryFilter($storeId);
+        $collection->getSelect()->columns('main_table.updated_at');
 
         $collection->setPageSize(5);
         $collection->setCurPage(1);
 
-        $result = array();
+        $result = array('result' => array());
         foreach ($collection as $row) {
             $searchData = array(
                 'query'             => $row->getData('name'),
@@ -354,7 +392,7 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
                 'number_of_results' => $row->getData('num_results'),
                 'last_usage'        => Mage::helper('neklo_monitor/date')->convertToTimestamp($row->getData('updated_at')),
             );
-            $result[] = $searchData;
+            $result['result'][] = $searchData;
         }
 
         $this->_jsonResult($result);
@@ -362,11 +400,14 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
 
     public function chartAction()
     {
+        /** @var Mage_Adminhtml_Helper_Dashboard_Order $chartHelper */
         $chartHelper = Mage::helper('adminhtml/dashboard_order');
 
+        $isFilter = false;
         $storeId = $this->_getRequestHelper()->getParam('store', null);
         if ($storeId) {
             $chartHelper->setParam('store', $storeId);
+            $isFilter = true;
         }
 
         $chartType = $this->_getRequestHelper()->getParam('type', 'quantity');
@@ -394,16 +435,26 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
                 break;
         }
 
-        $chartData = array();
-        $items = $chartHelper->getCollection()->getItems();
-        foreach ($items as $item) {
-            $zDate = new Zend_Date($item->getData('range'), $periodMask);
-            $chartData[$zDate->getTimestamp()] = (float)$item->getData($chartType);
+        /* @var $chartCollection Mage_Reports_Model_Mysql4_Order_Collection */
+        $chartCollection = $chartHelper->getCollection();
+
+        $originalChart = array();
+        foreach ($chartCollection->getItems() as $item) {
+            $originalChart[ $item->getData('range') ] = (float)$item->getData($chartType);
         }
 
-        list ($dateStart, $dateEnd) = Mage::getResourceModel('reports/order_collection')->getDateRange($period, '', '', true);
+        /** @var Zend_Date $dateStart */
+        /** @var Zend_Date $dateEnd */
+
+        // fill empty x-axis points with 0 values
+        list ($dateStart, $dateEnd) = $chartCollection->getDateRange($period, '', '', true);
         while ($dateStart->compare($dateEnd) < 0) {
-            $timestamp = $dateStart->getTimestamp();
+            $_range = $dateStart->toString($periodMask);
+            if (!array_key_exists($_range, $originalChart)) {
+                $originalChart[$_range] = 0;
+            }
+
+            // move to next x-axis point
             switch ($period) {
                 case '24h':
                     $dateStart->addHour(1);
@@ -417,19 +468,55 @@ class Neklo_Monitor_DashboardController extends Neklo_Monitor_Controller_Abstrac
                     $dateStart->addMonth(1);
                     break;
             }
-            if (!array_key_exists($timestamp, $chartData)) {
-                $chartData[$timestamp] = 0;
-            }
+        }
+
+        $chartData = array();
+        foreach ($originalChart as $_range => $_value) {
+            $zDate = new Zend_Date($_range, $periodMask);
+            $_ts = $zDate->getTimestamp();
+            $chartData[$_ts] = $_value;
         }
         ksort($chartData);
 
-        $result = array();
+        $result = array(
+            'chart' => array(),
+            'total' => array(
+                'revenue' => '0',
+                'qty'     => 0,
+            ),
+        );
         foreach ($chartData as $date => $value) {
-            $result[] = array(
+            $result['chart'][] = array(
+                'date'  => $date,
+//                'date_hf'  => date('Y-m-d H:i:s', $date),
+                'value' => $value,
+            );
+        }
+        /*
+        foreach ($originalChart as $date => $value) {
+            $result['o-chart'][] = array(
                 'date'  => $date,
                 'value' => $value,
             );
         }
+        */
+
+        /* @var $collection Mage_Reports_Model_Mysql4_Order_Collection */
+        $collection = Mage::getResourceModel('reports/order_collection');
+        $collection->addCreateAtPeriodFilter($period);
+        $collection->calculateTotals($isFilter);
+        if ($storeId) {
+            $collection->addFieldToFilter('store_id', (int)$storeId);
+        } else if (!$collection->isLive()) {
+            $collection->addFieldToFilter('store_id',
+                array('eq' => Mage::app()->getStore(Mage_Core_Model_Store::ADMIN_CODE)->getId())
+            );
+        }
+        $collection->setPageSize(1);
+        $collection->load();
+        $salesStats = $collection->getFirstItem();
+        $result['total']['revenue'] = Mage::app()->getStore($storeId)->convertPrice($salesStats->getRevenue(), true, false);
+        $result['total']['qty']     = $salesStats->getQuantity() * 1;
 
         $this->_jsonResult($result);
     }

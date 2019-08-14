@@ -10,9 +10,8 @@ class Neklo_Monitor_Model_Cron_Store extends Neklo_Monitor_Model_Cron_Abstract
         try {
             $gatewayConfig = $this->_getConnector()->sendInfo('store', $storeData);
             $this->_getConfig()->updateGatewayConfig($gatewayConfig);
-            $this->_getConfig()->updateGatewayLastUpdate();
         } catch (Exception $e) {
-            Mage::logException($e);
+//            Mage::logException($e);
             $msg = $schedule->getMessages();
             if ($msg) {
                 $msg .= "\n";
