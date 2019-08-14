@@ -1,0 +1,177 @@
+<?xml version="1.0"?>
+<config>
+    <tabs>
+        <neklo translate="label" module="neklo_monitor">
+            <label>[NEKLO]</label>
+            <sort_order>310</sort_order>
+        </neklo>
+    </tabs>
+    <sections>
+        <neklo_monitor translate="label" module="neklo_monitor">
+            <label>Monitor</label>
+            <tab>neklo</tab>
+            <frontend_type>text</frontend_type>
+            <sort_order>9999</sort_order>
+            <show_in_default>1</show_in_default>
+            <show_in_website>0</show_in_website>
+            <show_in_store>0</show_in_store>
+            <groups>
+                <general translate="label">
+                    <label>General Settings</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>10</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>0</show_in_website>
+                    <show_in_store>0</show_in_store>
+                    <fields>
+                        <is_enabled translate="label">
+                            <label>Is Enabled</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </is_enabled>
+                    </fields>
+                </general>
+                <!--security translate="label">
+                    <label>Security Settings</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>20</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>0</show_in_website>
+                    <show_in_store>0</show_in_store>
+                    <fields>
+                    </fields>
+                </security-->
+                <gateway>
+                    <label>Gateway Settings</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>30</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>0</show_in_website>
+                    <show_in_store>0</show_in_store>
+                    <fields>
+                        <token translate="label">
+                            <label>Token</label>
+                            <frontend_type>label</frontend_type>
+                            <backend_model>neklo_monitor/system_config_backend_token</backend_model>
+                            <sort_order>19</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </token>
+                        <!--server_type>
+                            <label>Server Type</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>neklo_monitor/system_config_source_server_type</source_model>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </server_type-->
+                        <status_production translate="label">
+                            <label>Status</label>
+                            <frontend_type>label</frontend_type>
+                            <frontend_model>neklo_monitor_adminhtml/system_config_frontend_status</frontend_model>
+                            <backend_model>neklo_monitor/system_config_backend_empty</backend_model>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends>
+                                <server_type>production</server_type>
+                            </depends>
+                        </status_production>
+                        <!--status_sandbox translate="label">
+                            <label>Status</label>
+                            <frontend_type>label</frontend_type>
+                            <frontend_model>neklo_monitor_adminhtml/system_config_frontend_status</frontend_model>
+                            <backend_model>neklo_monitor/system_config_backend_empty</backend_model>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends>
+                                <server_type>sandbox</server_type>
+                            </depends>
+                        </status_sandbox>
+                        <plan_production translate="label">
+                            <label>Plan</label>
+                            <frontend_type>label</frontend_type>
+                            <frontend_model>neklo_monitor_adminhtml/system_config_frontend_label</frontend_model>
+                            <sort_order>30</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends>
+                                <server_type>production</server_type>
+                            </depends>
+                        </plan_production>
+                        <plan_sandbox translate="label">
+                            <label>Plan</label>
+                            <frontend_type>label</frontend_type>
+                            <frontend_model>neklo_monitor_adminhtml/system_config_frontend_label</frontend_model>
+                            <sort_order>30</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends>
+                                <server_type>sandbox</server_type>
+                            </depends>
+                        </plan_sandbox>
+                        <frequency_production translate="label">
+                            <label>Frequency</label>
+                            <frontend_type>label</frontend_type>
+                            <frontend_model>neklo_monitor_adminhtml/system_config_frontend_label</frontend_model>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends>
+                                <server_type>production</server_type>
+                            </depends>
+                        </frequency_production>
+                        <frequency_sandbox translate="label">
+                            <label>Frequency</label>
+                            <frontend_type>label</frontend_type>
+                            <frontend_model>neklo_monitor_adminhtml/system_config_frontend_label</frontend_model>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends>
+                                <server_type>sandbox</server_type>
+                            </depends>
+                        </frequency_sandbox>
+                        <last_update_production translate="label">
+                            <label>Last Update</label>
+                            <frontend_type>label</frontend_type>
+                            <frontend_model>neklo_monitor_adminhtml/system_config_frontend_label</frontend_model>
+                            <sort_order>50</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends>
+                                <server_type>production</server_type>
+                            </depends>
+                        </last_update_production>
+                        <last_update_sandbox translate="label">
+                            <label>Last Update</label>
+                            <frontend_type>label</frontend_type>
+                            <frontend_model>neklo_monitor_adminhtml/system_config_frontend_label</frontend_model>
+                            <sort_order>50</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends>
+                                <server_type>sandbox</server_type>
+                            </depends>
+                        </last_update_sandbox-->
+                    </fields>
+                </gateway>
+            </groups>
+        </neklo_monitor>
+    </sections>
+</config>

@@ -1,0 +1,6 @@
+.gateway_status.success {
+    color:#008000;
+}
+.gateway_status.error {
+    color:#FF0000;
+}
