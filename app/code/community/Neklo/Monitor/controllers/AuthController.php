@@ -29,4 +29,9 @@ class Neklo_Monitor_AuthController extends Neklo_Monitor_Controller_Abstract
 
         $this->_jsonResult($result);
     }
+
+    public function pingAction()
+    {
+        $this->_jsonResult(array('ping' => 'Ok'));
+    }
 }

@@ -41,7 +41,7 @@ class Neklo_Monitor_Model_Minfo
                 'method'  => 'getCustomerOnline',
             ),
             'products_outofstock' => array(
-                'show'    => !empty($this->_config['magento']['customer_online']),
+                'show'    => !empty($this->_config['magento']['products_outofstock']),
                 'default' => null,
                 'method'  => 'getProductsOutofstock',
             ),

@@ -152,34 +152,4 @@ class Neklo_Monitor_Helper_Config extends Mage_Core_Helper_Data
         $configModel->saveConfig($path, $value, $scope, $scopeId);
     }
 
-
-
-
-
-    public function getAlertOutofstockEnabled()
-    {
-        $serverType = $this->getGatewayServerType();
-        return Mage::getStoreConfigFlag(self::ALERT_INVENTORY_OUTOFSTOCK_IS_ENABLED . '_' . $serverType);
-    }
-
-
-    public function getAlertLowstockEnabled()
-    {
-        $serverType = $this->getGatewayServerType();
-        return Mage::getStoreConfigFlag(self::ALERT_INVENTORY_LOWSTOCK_IS_ENABLED . '_' . $serverType);
-    }
-
-    public function getAlertLowstockConfig()
-    {
-        $serverType = $this->getGatewayServerType();
-        $data = Mage::getStoreConfig(self::ALERT_INVENTORY_LOWSTOCK_ATTRSETS . '_' . $serverType);
-        if (!$data) {
-            return array();
-        }
-
-        return Mage::helper('core')->jsonDecode($data);
-    }
-
-
-
 }

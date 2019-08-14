@@ -24,6 +24,7 @@ class Neklo_Monitor_Helper_Request
             'plan',
         ),
 
+        'auth/ping' => array(),
         'auth/index' => array( // common//common + token
             'sid',
             'device_id',
