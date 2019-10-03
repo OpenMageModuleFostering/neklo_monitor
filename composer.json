@@ -1,16 +1,19 @@
 {
-    "name": "OpenMageModuleFostering/Neklo_Monitor",
+    "name": "OpenMageModuleFostering\/Neklo_Monitor",
     "type": "magento-module",
     "license": "License",
     "homepage": "",
     "description": "Minor autentication updates",
     "authors": [
-    {
-        "name": "NEKLO",
-        "email": "info@neklo.com"
-    }
-],
+        {
+            "name": "NEKLO",
+            "email": "info@neklo.com"
+        }
+    ],
     "suggest": {
-        "magento-hackathon/magento-composer-installer": "*"
-    }
+        "magento-hackathon\/magento-composer-installer": "*"
+    },
+    "keywords": [
+        "openmage-module"
+    ]
 }
